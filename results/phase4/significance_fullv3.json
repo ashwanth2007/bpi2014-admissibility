@@ -1,0 +1,42 @@
+[
+  {
+    "metric": "hypervolume",
+    "better": "higher",
+    "mean_diff": 0.05372,
+    "p_value": 2.416203988402746e-21,
+    "n_pairs": 150,
+    "favours_PAA": true
+  },
+  {
+    "metric": "f2_breach",
+    "better": "lower",
+    "mean_diff": -0.01355,
+    "p_value": 6.612673796201977e-06,
+    "n_pairs": 150,
+    "favours_PAA": true
+  },
+  {
+    "metric": "f1_ftr",
+    "better": "higher",
+    "mean_diff": 0.02237,
+    "p_value": 1.210299378878897e-07,
+    "n_pairs": 150,
+    "favours_PAA": true
+  },
+  {
+    "metric": "f3_workload_sd",
+    "better": "lower",
+    "mean_diff": 0.29668,
+    "p_value": 1.6141660488117643e-22,
+    "n_pairs": 150,
+    "favours_PAA": false
+  },
+  {
+    "metric": "f4_expertise",
+    "better": "higher",
+    "mean_diff": 0.08989,
+    "p_value": 8.595544772149603e-14,
+    "n_pairs": 150,
+    "favours_PAA": true
+  }
+]

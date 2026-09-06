@@ -1,0 +1,308 @@
+% =====================================================================================
+%  Decision-time admissibility in operational process logs
+%  BPI Challenge 2014. Single dataset. See research/scope-decision-2026-09-06.md
+%
+%  Build:  "C:/Users/ashwa/tectonic/tectonic.exe" -X compile paper.tex
+%  Figures live in ../code/figures_out/ as vector PDF (and 600 DPI PNG alongside).
+% =====================================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{siunitx}
+\captionsetup{font=small,labelfont=bf}
+\graphicspath{{../code/figures_out/}}
+\bibliographystyle{unsrtnat}
+\setlength{\parskip}{0.35em}
+
+\title{\textbf{Decision-time admissibility in predictive process monitoring:\\
+measuring what causal feature selection costs, and what it buys}}
+
+\author{%
+Ashwanth S\thanks{Corresponding author. \texttt{ashwanth.s2024@vitstudent.ac.in}} \and
+Ragunandhan T \and
+Anushanth L G \and
+Mohammed Asif A \and
+Deepika J
+}
+\date{School of Computer Science and Engineering,\\
+Vellore Institute of Technology, Vellore 632014, India\\[0.6em]
+\today}
+
+\begin{document}
+\maketitle
+
+% -------------------------------------------------------------------------- ABSTRACT
+\begin{abstract}
+\noindent
+Predictive process monitoring reports strong discrimination on operational event logs, but
+much of that performance depends on attributes that are unavailable when the decision they
+inform is actually taken. We formalise a decision-time admissibility protocol, requiring
+every attribute to be observable at the moment of assignment and every group-level target
+encoding to be estimated from past cases only, and we measure what that discipline costs on
+the BPI Challenge 2014 incident log of a large banking IT service desk. Enforcing
+admissibility reduces held-out AUC from \num{0.8814} to \num{0.7859}, so
+\SI{25.0}{\percent} of all above-chance signal in the unconstrained model was leakage. The
+effect is stable across split ratios. We then show what admissibility buys. An admissible
+feature ladder rises from \num{0.5076} at three attributes to \num{0.7859} at seventeen, a
+gain of \num{0.2243} AUC obtained without any inadmissible attribute. Modelling case
+resolution as a discrete-time hazard and deriving breach risk as a survival ratio attains
+\num{0.8017} AUC at intake, exceeding a direct breach classifier at \num{0.7399}, while
+remaining structurally incapable of observing its own label. In a multi-objective assignment
+study, the proposed operators beat their own base algorithm on four of five metrics, yet an
+off-the-shelf many-objective control beats them and one of three components carries the gain.
+\end{abstract}
+
+\noindent\textbf{Keywords:} predictive process monitoring; data leakage; decision-time
+admissibility; survival analysis; multi-criteria decision making; service level agreements
+
+\input{sections_expanded}
+
+% --------------------------------------------------------------------------- DATA
+\section{Data and the admissibility protocol}
+
+\subsection{BPI Challenge 2014}
+
+The log records incident management at Rabobank Nederland Group ICT. After filtering to
+cases with a resolvable handle time and to assignment groups with at least 50 cases, the
+working set is \num{15828} incidents across \num{50} assignment groups and \num{47}
+configuration-item subtypes. The service level label follows the convention used throughout
+this study: an incident breaches when its handle time exceeds the median handle time for its
+priority class, computed on the training period alone.
+
+Four properties of the raw files silently corrupt a naive load and are recorded here because
+they cost real debugging time: the files are semicolon delimited, encoded latin-1 rather than
+UTF-8, use a decimal comma in the handle-time column, and pad the incident header to 78
+columns with empty trailing delimiters.
+
+\subsection{The protocol}
+
+\textbf{Rule 1, feature admissibility.} Every attribute must be observable at the moment the
+decision it informs is taken. Attributes measured across the whole closed case are excluded.
+
+\textbf{Rule 2, encoding admissibility.} Every group-level target encoding is estimated from
+cases resolved strictly before the current case opened, refitted inside every
+cross-validation fold and again on the outer training set, with a smoothing prior of 20.
+
+Applying both rules yields \num{17} admissible attributes and excludes nine, each excluded
+attribute recorded with its reason in a per-attribute justification table.
+
+% ------------------------------------------------------------------------- METHODS
+\section{Methods}
+
+\subsection{Predictive layer}
+
+Four gradient-boosted learners are evaluated: XGBoost, LightGBM, CatBoost and Random Forest.
+Each is assessed under stratified 5-fold cross-validation with accuracy, precision, recall,
+$F_1$, ROC-AUC, a confusion matrix, isotonic calibration and the Brier score. Three
+configurations are reported for every learner: the unconstrained configuration, the
+admissible configuration, and the admissible configuration under a chronological holdout in
+which training precedes evaluation in time.
+
+\subsection{F1: the assignment score}
+
+Seven criteria are mapped to $[0,1]$: outcome propensity and service level survival from the
+predictive layer; expertise match as the cosine similarity between the incident's
+requirement vector and the group's historical specialisation vector; workload headroom as
+Jain's fairness index \citep{jain1984quantitative} over the post-assignment load vector;
+freshness as an exponential decay in elapsed time; urgency as a logistic ramp in time
+remaining; and importance as a weighted geometric blend of priority, impact and urgency.
+
+They are aggregated by the weighted power mean of order $p$
+\citep{dyckhoff1984generalized}:
+\begin{equation}
+A(i,j) \;=\; \Bigl( \sum_{k} w_k \, s_k(i,j)^{\,p} \Bigr)^{1/p},
+\qquad \sum_k w_k = 1 .
+\label{eq:powermean}
+\end{equation}
+
+The exponent is the point of the formulation. At $p=1$ the mean is arithmetic and fully
+compensatory, so a strong criterion offsets a weak one; as $p \to 0$ it becomes geometric; at
+$p=-1$ harmonic; and as $p \to -\infty$ it converges to the minimum and becomes fully
+non-compensatory. Reporting a sensitivity curve over $p$ therefore converts a qualitative
+claim into a measured one.
+
+\paragraph{Degeneracy.} For $p \le 0$ the mean is undefined or identically zero whenever any
+criterion is zero. Cosine expertise \emph{is} exactly zero for a group with no training
+history in the incident's category, which occurs in \SI{31.65}{\percent} of evaluation cells.
+An explicit floor of $10^{-3}$ is therefore applied before any $p \le 0$ aggregation, and it
+is reported as a parameter rather than hidden as an implementation detail.
+
+\paragraph{Weighting.} Weights are derived by CRITIC \citep{diakoulaki1995determining} and
+cross-checked against entropy weighting and uniform weighting. CRITIC derives weight from a
+criterion's spread and its conflict with the others. Two of our criteria are model outputs,
+so their spread reflects calibration rather than importance, and isotonic calibration
+compresses variance. Reporting CRITIC alone would therefore launder a modelling artifact
+into a weight. All three schemes are reported, and the question is settled by rank stability
+rather than by assertion.
+
+\subsection{F2: service level risk as a derived quantity}
+
+Modelling breach directly as the survival event is degenerate on this log, and this was
+established empirically before the design was changed. Because the label is defined by handle
+time exceeding a per-priority threshold, a case that has been open longer than its own
+threshold has already breached: the measured breach rate past threshold is exactly
+\num{1.0000}. A hazard model given elapsed time and priority therefore reads its label rather
+than predicting it, and an early version of this model scored \num{0.9418} AUC while learning
+nothing.
+
+The admissible object is the hazard of \emph{resolution}, which elapsed time does not
+determine. Cases contribute one row per elapsed time bin they survive into, and a
+gradient-boosted classifier estimates the discrete hazard $h(t \mid x)$ directly
+\citep{suresh2022survival}. Survival follows by the product rule, and breach risk is the
+conditional survival ratio:
+\begin{equation}
+S(t \mid x) = \prod_{u \le t} \bigl(1 - h(u \mid x)\bigr),
+\qquad
+P\bigl(\text{breach} \mid \text{alive at } t\bigr) = \frac{S(\tau \mid x)}{S(t \mid x)},
+\label{eq:survival}
+\end{equation}
+where $\tau$ is the case's own service level threshold. The escalation cut point is tuned on
+training-period data alone and then frozen; tuning it on the evaluation period would
+reproduce, on the time axis, exactly the leak this paper measures on the feature axis.
+
+\subsection{Multi-objective assignment}
+
+Let $x_{ij} = 1$ when incident $i$ is assigned to group $j$. The formulation carries four
+constraints, namely that each incident is assigned exactly once, that group capacity is
+respected, that the group is available, and that a minimum expertise eligibility holds. Five
+objectives are optimised: expected first-time-right resolution and expertise match are
+maximised, while breach probability, workload imbalance and expected delay before first touch
+are minimised.
+
+Workload imbalance is retained as the standard deviation of post-assignment load. Jain's
+index is reported \emph{alongside} it throughout and never substituted for it, because
+changing an objective after observing that a method loses on it would be fitting the metric
+to the result.
+
+% ------------------------------------------------------------------------- RESULTS
+\section{Results}
+
+\subsection{The cost of admissibility}
+\label{sec:cost}
+
+Table~\ref{tab:cost} reports the three configurations under the \num{70}/\num{30} protocol.
+Enforcing admissibility reduces held-out AUC by \num{0.0955}, which is \SI{25.0}{\percent} of
+all signal above chance. The same measurement under an \num{80}/\num{20} split gives
+\num{0.8833} against \num{0.7877}, agreeing to within \num{0.002}, so the estimate is not an
+artifact of how the data was divided.
+
+\begin{table}[t]
+\centering
+\caption{Cost of decision-time admissibility, XGBoost, \num{70}/\num{30} split.}
+\label{tab:cost}
+\begin{tabular}{lrr}
+\toprule
+Configuration & Attributes & Held-out AUC \\
+\midrule
+Unconstrained & 20 & 0.8814 \\
+Admissible, random split & 17 & 0.7859 \\
+Admissible, chronological holdout & 17 & 0.6533 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What admissibility buys}
+
+Figure~\ref{fig:ladder} shows the admissible feature ladder. Discrimination rises from
+\num{0.5076} at three attributes to \num{0.7859} at seventeen. The gain from eight to
+seventeen attributes is \num{0.2243} AUC at \num{70}/\num{30} and \num{0.2213} at
+\num{80}/\num{20}, agreeing to \num{0.003}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\textwidth]{fig01_admissibility_ladder.pdf}
+\caption{Admissible feature ladder under both split ratios. Every attribute is observable at
+assignment; no inadmissible attribute contributes to any point on either curve.}
+\label{fig:ladder}
+\end{figure}
+
+\subsection{Deriving breach outperforms predicting it}
+\label{sec:hazard-results}
+
+Table~\ref{tab:hazard} compares the direct breach classifier with the derived survival ratio
+of Equation~\ref{eq:survival}. The derived quantity is better by \num{0.0618} AUC while being
+structurally incapable of observing its own label.
+
+\begin{table}[t]
+\centering
+\caption{Direct breach classification against breach derived from a resolution hazard.}
+\label{tab:hazard}
+\begin{tabular}{lr}
+\toprule
+Model & Held-out AUC \\
+\midrule
+Direct breach classifier & 0.7399 \\
+Resolution hazard, bin level & 0.7344 \\
+Breach derived from resolution, at intake & \textbf{0.8017} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Weighting is not load-bearing}
+
+The three weighting schemes induce closely agreeing orderings, with Spearman
+$\rho = \num{0.957}$ between CRITIC and uniform weighting, $\num{0.935}$ between CRITIC and
+entropy, and $\num{0.837}$ between entropy and uniform. The choice of scheme therefore does
+not drive the result.
+
+\input{sections_results_p4}
+
+\input{sections_complexity}
+
+\input{sections_discussion}
+
+% ---------------------------------------------------------------------- CONCLUSION
+\section{Conclusion}
+
+Decision-time admissibility costs \num{0.0955} AUC on this log, a quarter of all above-chance
+signal, and the discipline is worth paying for: an admissible ladder still gains \num{0.2243}
+AUC between eight and seventeen attributes. Choosing the admissible object rather than the
+convenient one can improve accuracy outright, as deriving breach from a resolution hazard
+does at \num{0.8017} against \num{0.7399}. In the assignment component the proposed operators
+improve on their own base algorithm, a reference-point control improves on them again, and one
+of three modifications accounts for the gain.
+
+% -------------------------------------------------------------------- DECLARATIONS
+\section*{Data availability}
+
+BPI Challenge 2014 is publicly available from 4TU.ResearchData under DOI
+\href{https://doi.org/10.4121/uuid:c3e5d162-0cfd-4bb0-bd82-af5268819c35}%
+{10.4121/uuid:c3e5d162-0cfd-4bb0-bd82-af5268819c35}. The incident-detail file used here
+carries DOI \href{https://doi.org/10.4121/uuid:3cfa2260-f5c5-44be-afe1-b70d35288d6d}%
+{10.4121/uuid:3cfa2260-f5c5-44be-afe1-b70d35288d6d}. No data were collected by the authors.
+
+\section*{Code availability}
+
+All analysis code, including every script required to regenerate every number and figure in
+this paper, is publicly available. Every experiment is seeded and reproducible.
+
+\section*{Funding}
+
+This research received no specific grant from any funding agency in the public, commercial,
+or not-for-profit sectors.
+
+\section*{Author contributions}
+
+% TO BE CONFIRMED WITH THE TEAM BEFORE SUBMISSION. Placeholder, not a claim.
+
+\section*{Competing interests}
+
+The authors declare no competing interests.
+
+\section*{Ethics}
+
+This study uses a publicly released, anonymised organisational event log. It involves no
+human participants and no animal subjects, so ethical approval and informed consent are not
+applicable.
+
+\bibliography{refs}
+
+\end{document}

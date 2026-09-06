@@ -1,0 +1,6 @@
+Feature_Set,Num_Features,CV_AUC,Test_AUC,Test_F1,Test_Accuracy,Test_Precision,Test_Recall
+3_static_only,3,0.5111,0.5076,0.4376,0.5006,0.3725,0.5304
+8_plus_temporal,8,0.5576,0.5616,0.444,0.5555,0.4098,0.4844
+10_plus_operational,10,0.6516,0.6574,0.5015,0.6188,0.4814,0.5234
+15_plus_config,15,0.7764,0.7767,0.6327,0.7075,0.5859,0.6877
+17_plus_group_TE,17,0.785,0.7859,0.6399,0.7213,0.6074,0.6761

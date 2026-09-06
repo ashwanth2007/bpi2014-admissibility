@@ -1,0 +1,181 @@
+% =====================================================================================
+%  Expanded body sections. Included by paper.tex.
+%  Every numeric claim traces to an artifact under ../code/. Nothing is typed from memory.
+% =====================================================================================
+
+% ---------------------------------------------------------------------- INTRODUCTION
+\section{Introduction}
+
+An incident arrives at a service desk. Someone must decide, within seconds, which team
+should handle it. That decision is expensive to reverse: in the log studied here, incidents
+reassigned at least once take \num{8.95} times longer to resolve at the median, \num{14.53}
+hours against \num{1.62}, and \SI{41.1}{\percent} of incidents are reassigned at least once.
+Getting the first assignment right is therefore worth roughly a ninefold reduction in median
+resolution time, and the existing process fails to do so on two cases in five.
+
+Predictive process monitoring offers to inform that decision and reports encouraging numbers
+for doing so \citep{teinemaa2019outcome,ceravolo2024predictive}. The difficulty is
+structural. A model trained on completed cases has access to the whole case. Attributes such
+as the number of reassignments, the count of activity events, or the number of distinct
+groups that touched an incident are all recorded in the log and none is knowable at the
+moment of assignment. Several are near-deterministic proxies for handle time, which is
+exactly the quantity the service level label thresholds. A model built from them will score
+well and cannot be deployed, because the information it depends on does not exist when the
+decision it informs is taken.
+
+\citet{kaufman2012leakage} formalised this as a violation of legitimacy: a feature is
+admissible only if it was observable before the target was determined.
+\citet{kapoor2023leakage} document the consequences across 17 scientific fields and 294
+papers. The pattern recurs wherever operational logs are modelled, in connectome-based
+neuroimaging \citep{rosenblatt2024leakage}, in clinical prediction
+\citep{davis2024framework,ramadan2025diagnostic}, in software build prediction
+\citep{mishra2026taxonomy}, in longitudinal education modelling
+\citep{fauszt2026timeconsistent}, and in financial text \citep{xue2026temporal}.
+
+Process mining has begun to address it. \citet{weytjens2022creating} show that constructing
+benchmark splits without accounting for case overlap leaks information across the boundary.
+\citet{abb2024discussion} measure example leakage above \SI{80}{\percent} across standard
+BPIC logs and find that a naive baseline matches a state-of-the-art deep model once that
+leakage is present, a result \citet{weytjens2026david} extend to transformer and
+large-language-model baselines.
+
+What is missing is a measurement, on one log under one protocol, of both what the discipline
+costs and what it buys, reported together. A cost figure alone invites the conclusion that
+admissibility is not worth paying for. A benefit figure alone is unfalsifiable. This paper
+reports both.
+
+\subsection{Research questions}
+
+\begin{description}
+\item[RQ1] How much discrimination is lost when every attribute must be observable at the
+moment of assignment and every group-level encoding must be estimated from past cases only?
+\item[RQ2] Under that constraint, does adding attributes beyond the small sets used in prior
+work still improve discrimination, and by how much?
+\item[RQ3] Does choosing an admissible modelling target, rather than the convenient one,
+cost accuracy or gain it?
+\item[RQ4] Does a priority-aware adaptive multi-objective assignment policy improve on
+standard NSGA-II under the same admissibility constraint?
+\end{description}
+
+\subsection{Contributions}
+
+\begin{enumerate}
+\item A decision-time admissibility protocol stated as two rules and implemented as
+executable constraints rather than as documentation, with its cost measured at \num{0.0955}
+AUC on BPI Challenge 2014, which is \SI{25.0}{\percent} of all above-chance signal (RQ1).
+
+\item An admissible feature ladder rising from \num{0.5076} at three attributes to
+\num{0.7859} at seventeen, a gain of \num{0.2243} AUC obtained without any inadmissible
+attribute, reproduced across two split ratios to within \num{0.003} (RQ2).
+
+\item Two decision-aware scoring formulations. An assignment score aggregating seven criteria
+by a weighted power mean whose exponent parameterises compensation between criteria, and a
+service level risk score obtained by modelling resolution as a discrete-time hazard and
+deriving breach as a survival ratio. The second reaches \num{0.8017} AUC at intake against
+\num{0.7399} for a direct classifier, while being structurally unable to observe its own
+label (RQ3).
+
+\item A multi-objective assignment study in which the proposed operator set improves on its own
+base algorithm on four of five metrics but is outperformed by an off-the-shelf many-objective
+control, with an ablation attributing essentially the whole gain to one of its three components.
+Two reproducibility defects were found in our own harness and corrected before any number in
+this paper was produced. The uncorrected harness reversed this conclusion (RQ4).
+\end{enumerate}
+
+% ---------------------------------------------------------------------- RELATED WORK
+\section{Related work}
+
+\subsection{Leakage, admissibility and target encoding}
+
+\citet{kaufman2012leakage} give the canonical formulation and the learn-predict separation
+principle. \citet{kapoor2023leakage} provide an eight-type taxonomy and connect leakage to
+reproducibility failure at scale. Domain treatments converge on the same shape: an
+accuracy collapse once only pre-decision features are admitted, with
+\citet{mishra2026taxonomy} reporting a \num{15.07} point drop on one platform after removing
+leaky features and arguing that prior studies reporting 95 to 99 per cent accuracy used
+contaminated attributes.
+
+Target encoding deserves separate attention because it is the second of our two rules.
+\citet{pargent2022regularized} show that regularised target encoding outperforms traditional
+categorical handling, and the regularisation they describe is exactly what makes the encoding
+safe only when it is refitted inside each resampling fold. An encoding fitted once over the
+full dataset before splitting contaminates every subsequent evaluation and includes each
+row's own label in its own predictor.
+
+Within process mining, \citet{weytjens2022creating} address leakage in benchmark
+construction and show that a plain temporal split is insufficient because training cases
+overlap the test period. \citet{abb2024discussion} quantify example leakage on the standard
+BPIC logs. Our protocol extends this from the split axis to the feature axis and the time
+axis at once, and measures the cost rather than only prescribing the constraint.
+
+\subsection{Predictive and prescriptive process monitoring}
+
+\citet{teinemaa2019outcome} provide the standard outcome-prediction benchmark across 24
+real-world datasets, complemented by remaining-time benchmarks \citep{verenich2019survey} and
+deep-learning comparisons \citep{ramamaneiro2023learning,kratsch2021machine}. We note
+explicitly that \textbf{BPI Challenge 2014 is not in the Teinemaa dataset list}, verified
+against the paper itself. There is therefore no published same-task baseline on this log, so
+the ranges reported in those benchmarks are used here as context and never as a head-to-head
+comparison. \citet{fertig2026revisiting} revisit the field under foundation models and find
+that tabular gradient boosting remains competitive, which is why this study uses it.
+
+Prescriptive process monitoring asks what to do rather than what will happen
+\citep{kubrak2022prescriptive}. Recent work addresses resource constraints explicitly
+\citep{shoush2025prescriptive} and the organisational question of whether practitioners can
+act on the output \citep{kubrak2026supporting}. The framing matters here because an
+admissibility constraint is only meaningful relative to a decision, and a decision is only
+meaningful if someone can take it at the time the model fires.
+
+\subsection{IT service management and this log}
+
+BPI Challenge 2014 \citep{dongen2014challenge} has been analysed for workload impact
+\citep{dees2014predictive} and with fuzzy and heuristic mining
+\citep{andreswari2023analysis}, and the BPI challenge series has been surveyed
+\citep{lopes2019survey}. Adjacent operational problems include incident-management
+prediction \citep{sarnovsk2018predictive}, ticket reassignment prediction
+\citep{schad2022predicting}, assignment-group classification \citep{gassel2024evaluating},
+service level breach prediction \citep{gouryraj2021service,swain2023factors}, and escalation
+with large language models \citep{liu2025tickit}. Ticket assignment has also been posed as a
+multi-objective problem \citep{arain2026novel}, which is the closest prior framing to our
+Section on assignment.
+
+\subsection{Multi-objective assignment and its known limits}
+
+NSGA-II \citep{deb2002fast} remains the reference algorithm, with NSGA-III
+\citep{debjain2014evolutionary} introduced for many-objective problems where dominance-based
+selection degrades. That degradation is well characterised and is still an active theoretical
+subject \citep{zheng2024runtime,doerr2026difficulties,opris2025first,alghouass2025proven},
+and empirical comparisons on applied problems report mixed outcomes
+\citep{santos2024performance,wolschick2024evaluating,ishibuchi2025search,wang2025nsgaii,li2025learning}.
+Our five objectives place this study in exactly that regime, so a result in which NSGA-III
+outperforms an NSGA-II variant is consistent with theory rather than surprising.
+
+\citet{wang2025rethinking} argue that a substantial share of claimed novelty in metaheuristic
+research does not survive controlled comparison. That argument is directly relevant to the
+result we report in Section~\ref{sec:assignment-results}, and it is one reason we report the
+ablation rather than only the aggregate.
+
+\subsection{Aggregation, weighting and calibration}
+
+The weighted power mean is a compensative connective in the sense of
+\citet{dyckhoff1984generalized}, generalised further by \citet{aggarwal2015generalized} and
+given an explicit andness and orness parameterisation by \citet{dujmovic2015weighted}. It is
+the natural aggregator when the degree of permitted compensation between criteria is itself
+a design question rather than an assumption.
+
+CRITIC \citep{diakoulaki1995determining} derives weights from contrast intensity and
+conflict. Objective weighting methods are not interchangeable
+\citep{mukhametzyanov2021specific,ariyanti2025comparative}, their stability under
+perturbation varies \citep{linh2025evaluating,paradowski2025novel}, they are susceptible to
+rank reversal \citep{li2026trend}, and sensitivity analysis over the weight vector is
+recommended practice \citep{gaona2025integrated}. We therefore report three schemes and a
+rank-stability analysis rather than a single weight vector.
+
+Because the scores feed a downstream decision, calibration matters as much as ranking
+\citep{filho2023classifier}, and the excess risk of acting on an uncalibrated classifier is
+quantifiable \citep{perezlebel2025decision}. Explanation is subject to its own limits
+\citep{bilodeau2024impossibility,hwang2025shapbased}, and in process monitoring specifically
+the guidance is to obtain interpretable models rather than to explain opaque ones after the
+fact \citep{stevens2024explainability,mehdiyev2025interpretable,sahatova2026feature}.
+Whether explanations actually improve human decisions is not settled
+\citep{haag2026explanations,chae2025explanation}.

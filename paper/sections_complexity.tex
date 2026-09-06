@@ -1,0 +1,68 @@
+% =====================================================================================
+%  Complexity and measured runtime. Numbers from code/results_evaluation/runtime.csv
+%  and complexity.csv. Timing from an instrumented run: 160 solves, 20 per variant.
+% =====================================================================================
+
+\subsection{Complexity and measured cost}
+\label{sec:complexity}
+
+\paragraph{Asymptotic cost.}
+Write $n$ for the number of work items in an arrival batch, $m$ for the number of eligible
+groups, $N$ for population size, $M$ for the number of objectives and $H$ for the number of
+reference directions. The operational baselines are single-pass: random, round robin and FIFO
+are $O(n)$, least-loaded is $O(n \log m)$ with a heap over group loads, and greedy is $O(nm)$
+because it scans every eligible group for every item. The evolutionary methods are dominated
+per generation by non-dominated sorting at $O(M N^2)$ \citep{deb2002fast}; NSGA-III adds
+association to reference directions, giving $O(M N^2 + N H)$ \citep{debjain2014evolutionary}.
+The repair operator is $O(nm)$ in the worst case and is bounded at six passes, so it does not
+change the order.
+
+The proposed modifications do not alter the asymptotic cost. Priority-aware initialisation is
+a one-off $O(nm)$ greedy construction over a fraction of the initial population. Adaptive
+crossover and the mutation schedule each add an $O(N n)$ diversity measurement per generation,
+dominated by the $O(M N^2)$ sorting term.
+
+\paragraph{Measured cost.}
+Asymptotic equality does not imply equal wall time, so Table~\ref{tab:runtime} reports
+measured per-solve time from an instrumented run of 160 solves, 20 per variant, at 150
+generations and population 60 on CPU with no GPU. Timing is captured at the point the search
+executes rather than derived from log timestamps.
+
+\begin{table}[t]
+\centering
+\caption{Measured wall time per solve. 20 solves per variant, 150 generations, population 60,
+single CPU. Percentages are relative to standard NSGA-II.}
+\label{tab:runtime}
+\begin{tabular}{lrrr}
+\toprule
+Policy & Mean (s) & SD (s) & vs.\ standard \\
+\midrule
+PAA minus adaptive mutation variant & 4.21 & 0.26 & $-5.9\%$ \\
+PAA minus adaptive crossover & 4.23 & 0.29 & $-5.4\%$ \\
+PAA minus priority init & 4.42 & 0.18 & $-1.4\%$ \\
+PAA minus SLA mutation & 4.43 & 0.20 & $-1.1\%$ \\
+Standard NSGA-II & 4.48 & 0.59 & --- \\
+NSGA-III + priority init & 4.71 & 0.25 & $+5.3\%$ \\
+PAA-NSGA-II & 4.84 & 0.47 & $+8.0\%$ \\
+NSGA-III & 5.07 & 0.58 & $+13.2\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three observations follow.
+
+The spread is narrow. Every evolutionary variant lies within \SI{14}{\percent} of standard
+NSGA-II, so on this problem the choice between them is not a cost decision. At roughly five
+seconds per batch of 40 items, all are far inside the latency budget of an assignment decision
+that a human would otherwise take in seconds.
+
+Priority-aware initialisation pays for itself twice. Adding it to NSGA-III both raises
+hypervolume, from \num{0.5279} to \num{0.5324}, and reduces mean solve time, from
+\num{5.07} to \num{4.71} seconds. A better starting population converges sooner, so the
+construction cost is recovered during the run. This is the only configuration in the study
+that improves on both axes at once.
+
+The two modifications that do not help do not cost much either. Removing adaptive crossover or
+SLA-aware mutation saves roughly \SI{5}{\percent} of solve time while changing hypervolume by
+less than \num{0.001}. They are close to free and close to useless, which is the honest
+summary and the reason the ablation is reported per component.

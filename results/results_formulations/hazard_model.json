@@ -1,0 +1,36 @@
+{
+  "event_modelled": "resolution, not breach",
+  "why": "breach is a deterministic function of duration versus the per-priority threshold; measured breach rate past threshold is 1.0000, so a breach-hazard model with elapsed time as a feature reads the label and scored 0.9418 while learning nothing. Verified empirically, not assumed.",
+  "person_period_rows": 69867,
+  "cases": 15828,
+  "expansion": 4.414139499620925,
+  "bin_resolution_rate": 0.2260437688751485,
+  "heldout_resolution_hazard_auc": 0.7343799480851502,
+  "derived_breach_auc_at_intake": 0.8017059849307406,
+  "static_model_breach_auc_for_comparison": 0.7398755294001772,
+  "threshold": 0.5304948687553406,
+  "threshold_tuned_on": "training period (earliest 80 per cent) (f1 = 0.4947)",
+  "survival_monotonic": true,
+  "bin_edges_hours": [
+    0.0,
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    16.0,
+    24.0,
+    48.0,
+    96.0,
+    168.0,
+    "inf"
+  ],
+  "features": [
+    "priority",
+    "impact",
+    "urgency",
+    "assignment_delay",
+    "category_id",
+    "bin_idx",
+    "bin_start"
+  ]
+}

@@ -1,0 +1,26 @@
+# Raw datasets are redistributable from their DOIs, never committed
+bpi2014/
+*.csv.gz
+data/raw/
+
+# Trained model binaries
+*.joblib
+
+# Database dump containing demonstration data
+db/seed-data.sql
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# LaTeX build products
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+
+# OS
+Thumbs.db
+.DS_Store

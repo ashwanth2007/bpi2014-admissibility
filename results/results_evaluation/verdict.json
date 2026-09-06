@@ -1,0 +1,36 @@
+{
+  "hypervolume_p": 2.416203988402746e-21,
+  "hypervolume_mean_diff": 0.05372,
+  "proposed_beats_control_on_hypervolume": true,
+  "nsga3_hypervolume": 0.527885850252363,
+  "proposed_hypervolume": 0.4844064214081138,
+  "nsga3_beats_proposed": true,
+  "nsga3_advantage_pct": 8.97581595179096,
+  "ablation": {
+    "priority-aware initialisation": {
+      "hypervolume_without": 0.41332058466117544,
+      "delta_vs_full": -0.07108583674693836,
+      "component_helps": true
+    },
+    "adaptive crossover": {
+      "hypervolume_without": 0.48422587763459624,
+      "delta_vs_full": -0.0001805437735175608,
+      "component_helps": true
+    },
+    "SLA-aware mutation": {
+      "hypervolume_without": 0.4834748230344625,
+      "delta_vs_full": -0.00093159837365131,
+      "component_helps": true
+    }
+  },
+  "exploratory_PAA-AdaptMut": {
+    "hypervolume": 0.48278566434083586,
+    "vs_proposed": -0.0016207570672779337,
+    "vs_nsga3": -0.045100185911527146
+  },
+  "exploratory_NSGA3-PrioInit": {
+    "hypervolume": 0.5323789395663527,
+    "vs_proposed": 0.04797251815823894,
+    "vs_nsga3": 0.004493089313989729
+  }
+}

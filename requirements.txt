@@ -1,0 +1,17 @@
+# Pinned to the versions these results were produced with (2026-09-07, Python 3.12.13).
+# numpy is pinned deliberately: installing anything that upgrades it to 2.x breaks the
+# compiled stack (xgboost, lightgbm, catboost, scipy) on this toolchain.
+numpy==1.26.4
+pandas==2.2.2
+scipy==1.13.1
+scikit-learn==1.4.2
+statsmodels==0.14.2
+xgboost==3.2.0
+lightgbm==4.7.0
+catboost==1.2.10
+shap==0.45.1
+matplotlib==3.11.1
+seaborn==0.13.2
+joblib==1.4.2
+imbalanced-learn==0.12.3
+pymoo==0.6.2

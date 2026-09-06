@@ -1,0 +1,164 @@
+% =====================================================================================
+%  Discussion, threats to validity, limitations. Included by paper.tex after Results.
+% =====================================================================================
+
+\section{Discussion}
+
+\subsection{A quarter of the signal was not there}
+
+The headline cost figure is \num{0.0955} AUC, or \SI{25.0}{\percent} of everything the
+unconstrained model achieved above chance. That is not a rounding correction. A practitioner
+deploying the unconstrained model would find a quarter of its apparent discrimination absent
+at run time, because the attributes carrying it are recorded only after the decision has been
+taken. The same measurement under an \num{80}/\num{20} split differs by less than
+\num{0.002} AUC, so the estimate is a property of the data rather than of the split.
+
+This is consistent in direction with reported effects elsewhere, including the
+\num{15.07} point accuracy drop \citet{mishra2026taxonomy} measure on build prediction and
+the example-leakage rates above \SI{80}{\percent} that \citet{abb2024discussion} find on
+standard process logs. The contribution here is that the cost and the benefit are measured on
+the same log under one protocol, so neither can be quoted without the other.
+
+\subsection{Admissibility is not the same as parsimony}
+
+A natural response to a leakage finding is to use fewer attributes. The ladder shows that
+would be the wrong lesson. Discrimination rises monotonically from \num{0.5076} at three
+admissible attributes to \num{0.7859} at seventeen, a gain of \num{0.2243} AUC, reproduced to
+within \num{0.003} across split ratios. Restricting to a small attribute set costs far more
+than enforcing admissibility does.
+
+The distinction matters because the two are easily conflated. Attributes should be dropped
+because they are unavailable at decision time, not because they are numerous. Nine attributes
+are excluded here, each with its reason recorded; the remaining seventeen are kept because
+each is observable when the assignment is made.
+
+\subsection{Choosing the admissible target can improve accuracy, not only defensibility}
+
+The service level result is the one we did not expect. Breach cannot be modelled directly as
+a survival event on this log without the model reading its own label, because breach is
+defined by duration exceeding a per-priority threshold and the measured breach rate past that
+threshold is exactly \num{1.0000}. An early version scored \num{0.9418} AUC on precisely that
+artifact.
+
+Modelling resolution instead, and deriving breach as the conditional survival ratio
+$S(\tau \mid x) / S(t \mid x)$, produces \num{0.8017} AUC at intake against \num{0.7399} for a
+direct classifier. The admissible formulation is better by \num{0.0618} AUC. Admissibility is
+usually framed as a constraint that costs performance. Here, choosing the object that can
+actually be estimated improved it, because the resolution hazard is a genuine random quantity
+given elapsed time while breach, past the threshold, is not.
+
+\subsection{The weighting objection answers itself}
+
+Objective weighting methods are known to disagree, to be unstable under perturbation, and to
+admit rank reversal \citep{mukhametzyanov2021specific,linh2025evaluating,li2026trend}. CRITIC
+is additionally unsuitable in isolation here, because two of the seven criteria are model
+outputs whose spread reflects calibration rather than importance, and isotonic calibration
+compresses variance. Reporting CRITIC alone would convert a modelling artifact into a weight
+and label it data-driven.
+
+Reporting three schemes resolves this empirically rather than rhetorically. The induced
+assignment orderings agree at Spearman $\rho = \num{0.957}$ between CRITIC and uniform
+weighting and $\rho = \num{0.935}$ between CRITIC and entropy. The weighting choice is
+therefore not load-bearing for these results, which is a stronger statement than defending any
+one scheme.
+
+\subsection{The modifications work, but the base algorithm matters more}
+
+The proposed operator set does improve on standard NSGA-II, significantly and on four of five
+metrics (Section~\ref{sec:assignment-results}). It is then outperformed by NSGA-III, an
+off-the-shelf control included only as a many-objective reference, which reaches higher
+hypervolume from a front roughly a third the size. Two considerations make this informative
+rather than disappointing.
+
+First, five objectives place this problem in the many-objective regime where dominance-based
+selection is known to degrade, a limitation characterised when NSGA-III was introduced
+\citep{debjain2014evolutionary} and still under active theoretical study
+\citep{zheng2024runtime,doerr2026difficulties}. A result in which a reference-point method
+outperforms a dominance-based one on five objectives agrees with that theory.
+
+Second, \citet{wang2025rethinking} argue that much claimed novelty in metaheuristic research
+does not survive controlled comparison. An ablation that isolates each proposed modification
+is the appropriate response to that argument, and it is why the ablation is reported per
+component rather than only in aggregate.
+
+\subsection{Two defects in our own harness}
+
+Two errors were found in the experimental code and corrected before any number reported here
+was produced. Both are recorded because a paper about claims that do not survive verification
+should hold its own instrument to the same standard.
+
+The seed was derived using Python's built-in string hash, which is salted per process. The
+same variant therefore drew a different seed on every invocation, measured at \num{43},
+\num{41} and \num{32} across three processes for one variant name. The harness documentation
+asserted reproducibility that did not hold. It now uses a stable checksum, and two independent
+invocations produce bitwise-identical metrics.
+
+The hypervolume reference point was taken from whichever run completed first, making every
+hypervolume value dependent on variant ordering and incomparable between runs with different
+variant sets. It is now the nadir across all variants and all runs on a batch, computed before
+any hypervolume is taken.
+
+Neither defect affects the predictive results in Sections~\ref{sec:cost} to
+\ref{sec:hazard-results}, which come from a separate pipeline. Both invalidated every earlier
+assignment run, and those were discarded.
+
+The consequence is worth stating plainly rather than in passing. Under the uncorrected
+harness the proposed method appeared to LOSE to standard NSGA-II on hypervolume. Corrected,
+it wins, significantly. The defect did not merely add noise: it reversed the sign of the
+study's headline comparison. Had the harness not been audited, this paper would have
+reported the opposite conclusion with the same apparent statistical confidence.
+
+\subsection{Threats to validity}
+
+\textbf{Construct.} The service level label is derived from handle time against a per-priority
+median rather than from a contractual target, because the log's own \texttt{Alert Status}
+field is uniformly \texttt{closed} across \num{46606} of \num{46809} raw incidents and carries
+no usable breach signal. Results should be read as conditional on that operationalisation, and
+the threshold definition is reported so it can be varied.
+
+\textbf{Internal.} Every parameter is fitted on the earliest \SI{80}{\percent} of the timeline,
+and the escalation cut point is tuned on training-period data alone. The chronological holdout
+is reported alongside the random split precisely because the gap between them, \num{0.7859}
+against \num{0.6533}, is itself informative about drift.
+
+\textbf{External.} One log, one organisation, one country, one time window. The protocol should
+transfer. The magnitudes should not be assumed to.
+
+\textbf{Conclusion.} Statistical comparisons use paired Wilcoxon signed-rank tests with
+Holm-Bonferroni correction across five metrics, and every run is seeded and reproducible.
+
+\section{Limitations}
+
+\textbf{An IT service desk is not a sales pipeline.} This work is motivated by lead
+assignment, and the objective analogous to conversion is first-time-right resolution. No
+public dataset carries real leads, real individual representative identifiers and real
+conversion outcomes together. That absence is a finding rather than an oversight, and it is
+why the evaluation is conducted on an operational log whose assignment decisions and outcomes
+are real even though its domain is not sales.
+
+\textbf{A third of the delay attribute is excluded.} The recorded first-assignment timestamp
+is corrupted in its upper tail: the median is \num{16.2} hours against a 90th percentile of
+\num{5684} hours, and the favourable-outcome rate rises again across that tail rather than
+falling. \SI{35.6}{\percent} of rows are excluded from the freshness and urgency fits on this
+basis. Fitting across the uncorrected attribute returns a decay rate of exactly zero with an
+undefined confidence interval, which is how the corruption was detected.
+
+\textbf{Counterfactual outcomes are not observed.} A historical log records only the
+assignment that happened. Any policy differing from the recorded one is scored by a model
+rather than by ground truth, which is the standard objection to optimisation studies on
+logged data. We report the fraction of decisions matching the recorded assignment together
+with the real observed breach rate on exactly those cases, as the only non-simulated outcome
+signal available. Off-policy evaluation would address this properly and is left to future
+work.
+
+\textbf{Group-level rather than individual-level assignment.} The log identifies assignment
+groups, not individuals, so representative-level features such as experience and individual
+historical conversion are not estimable. A log with individual resource identifiers would
+support the finer formulation.
+
+\textbf{Explanation is reported but not validated against human decisions.} SHAP attributions
+are computed for the predictive layer, but attribution methods have known impossibility
+results \citep{bilodeau2024impossibility} and sensitivity to feature representation
+\citep{hwang2025shapbased}, and whether explanations improve human decisions is unsettled
+\citep{haag2026explanations,chae2025explanation}. No claim is made that these explanations
+improve operator performance.

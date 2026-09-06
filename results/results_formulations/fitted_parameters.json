@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "dataset": "BPI Challenge 2014",
+    "incidents": 15828,
+    "groups": 50,
+    "categories": 47,
+    "train_fraction": 0.8,
+    "train_n": 12662,
+    "seed": 42,
+    "rule": "every parameter fitted on the earliest 80 per cent by open time",
+    "runtime_seconds": 11.7
+  },
+  "s5_freshness_decay": {
+    "lambda_per_hour": 0.019116071921765947,
+    "ci95": [
+      0.016140151648140855,
+      0.022640692211849243
+    ],
+    "n": 7041,
+    "fitted_on": "training period only",
+    "delay_cap_hours": 168.0,
+    "rows_excluded_as_artifacts": 5627,
+    "why_capped": "first-assignment timestamp corrupted above ~1 week; uncapped fit returns lambda=0 with a NaN interval"
+  },
+  "s6_urgency_ramp": {
+    "k": 0.024755062934544797,
+    "tau0_hours": -5.63157620164255,
+    "n": 7041,
+    "sla_target_source": "per-priority median handle time, training period",
+    "fitted_on": "training period only"
+  },
+  "s3_expertise": {
+    "metric": "cosine similarity",
+    "eval_shape": [
+      3166,
+      50
+    ],
+    "exact_zero_cells": 50102,
+    "exact_zero_fraction": 0.31650031585596966,
+    "groups_with_no_training_history": 0,
+    "note": "exact zeros are why the power mean needs a floor for p <= 0"
+  },
+  "s4_workload": {
+    "jain_index": 0.3757964889992628,
+    "std_dev": 326.37662661410053,
+    "coefficient_of_variation": 1.2888036116494255,
+    "n_groups": 50
+  },
+  "s1_s2_models": {
+    "auc_breach": 0.7398755294001772,
+    "auc_reassign": 0.7776436232829824
+  },
+  "rank_stability": {
+    "critic_vs_entropy": {
+      "spearman_rho": 0.934656999200671,
+      "p_value": 0.0
+    },
+    "critic_vs_equal": {
+      "spearman_rho": 0.956672474846791,
+      "p_value": 0.0
+    },
+    "entropy_vs_equal": {
+      "spearman_rho": 0.8370519968803599,
+      "p_value": 0.0
+    }
+  },
+  "weights": {
+    "critic": [
+      0.16047796908928577,
+      0.13906144424080025,
+      0.24087125049237923,
+      0.12264864883144583,
+      0.11071648052956166,
+      0.10361140155379894,
+      0.12261280526272834
+    ],
+    "entropy": [
+      0.13202044599663337,
+      0.07562815409695528,
+      0.4582821770622575,
+      1.7754442670715912e-09,
+      0.014584762774092357,
+      0.010745434192755733,
+      0.3087390241018615
+    ],
+    "equal": [
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285
+    ]
+  },
+  "criteria": [
+    "s1_outcome",
+    "s2_sla_survival",
+    "s3_expertise",
+    "s4_workload",
+    "s5_freshness",
+    "s6_urgency",
+    "s7_importance"
+  ],
+  "f2_hazard": {
+    "event_modelled": "resolution, not breach",
+    "why": "breach is a deterministic function of duration versus the per-priority threshold; measured breach rate past threshold is 1.0000, so a breach-hazard model with elapsed time as a feature reads the label and scored 0.9418 while learning nothing. Verified empirically, not assumed.",
+    "person_period_rows": 69867,
+    "cases": 15828,
+    "expansion": 4.414139499620925,
+    "bin_resolution_rate": 0.2260437688751485,
+    "heldout_resolution_hazard_auc": 0.7343799480851502,
+    "derived_breach_auc_at_intake": 0.8017059849307406,
+    "static_model_breach_auc_for_comparison": 0.7398755294001772,
+    "threshold": 0.5304948687553406,
+    "threshold_tuned_on": "training period (earliest 80 per cent) (f1 = 0.4947)",
+    "survival_monotonic": true,
+    "bin_edges_hours": [
+      0.0,
+      1.0,
+      2.0,
+      4.0,
+      8.0,
+      16.0,
+      24.0,
+      48.0,
+      96.0,
+      168.0,
+      "inf"
+    ],
+    "features": [
+      "priority",
+      "impact",
+      "urgency",
+      "assignment_delay",
+      "category_id",
+      "bin_idx",
+      "bin_start"
+    ]
+  }
+}

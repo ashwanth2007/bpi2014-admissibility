@@ -1,0 +1,4 @@
+pair,spearman_rho,p_value
+critic_vs_entropy,0.934656999200671,0.0
+critic_vs_equal,0.956672474846791,0.0
+entropy_vs_equal,0.8370519968803599,0.0

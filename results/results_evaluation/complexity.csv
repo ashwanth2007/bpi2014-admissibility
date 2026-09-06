@@ -1,0 +1,7 @@
+policy,per_decision,notes,per_generation,per_evaluation
+Random / RoundRobin / FIFO,O(n),"single pass, no search",,
+LeastLoaded,O(n log m),heap over group loads,,
+GreedyBestOutcome,O(n m),scan every eligible group per lead,,
+NSGA-II family,,fast non-dominated sorting dominates; Deb et al. 2002,O(M N^2),
+NSGA-III,,sorting plus association to H reference directions; Deb and Jain 2014,O(M N^2 + N H),
+CapacityRepair,,"at most 6 passes, bounded",,O(n m) worst case
