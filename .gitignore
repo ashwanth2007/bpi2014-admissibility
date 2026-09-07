@@ -6,9 +6,6 @@ data/raw/
 # Trained model binaries
 *.joblib
 
-# Database dump containing demonstration data
-db/seed-data.sql
-
 # Python
 __pycache__/
 *.pyc
