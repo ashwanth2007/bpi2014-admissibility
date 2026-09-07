@@ -81,7 +81,56 @@ does not survive controlled comparison. An ablation that isolates each proposed 
 is the appropriate response to that argument, and it is why the ablation is reported per
 component rather than only in aggregate.
 
+\subsection{What the cost looks like in cases rather than in AUC}
+
+A \num{0.0955} AUC loss is an abstraction. The confusion matrices in
+Section~\ref{sec:confusion} put it in units an operations manager can act on. On the same
+\num{9371} held-out incidents, the unconstrained model catches \num{2714} of \num{3433}
+breaches and the admissible one catches \num{2321}. The \num{393} cases in that difference are
+not a modelling subtlety. They are the incidents an escalation queue built on the
+unconstrained model would appear to catch and would not.
+
+The direction of the error also changes. The unconstrained model is roughly symmetric,
+\SI{79.2}{\percent} specificity against \SI{79.1}{\percent} recall. The admissible model is
+not: \SI{74.7}{\percent} specificity against \SI{67.6}{\percent} recall. Removing the
+post-hoc attributes removes signal about the long-running cases specifically, because those
+attributes counted the events a long-running case accumulates. What is left behind
+discriminates the ordinary case well and the pathological case poorly, which is the harder
+half of the problem and the half a service desk actually cares about.
+
+\subsection{The model is data-limited, not capacity-limited}
+
+The learning curve in Section~\ref{sec:learning} separates two explanations for
+\num{0.7859} that are often conflated. Training AUC is \num{0.9977} at \num{1093} incidents,
+so the learner has ample capacity; the ceiling is not the model class. The generalisation gap
+falls monotonically from \num{0.3254} to \num{0.0804} across a twentyfold increase in data
+and is still falling, and held-out AUC is still rising at the largest training size available.
+
+Two consequences follow, and the second is a warning against the obvious fix. More incidents
+from this desk would help, so the practical route to a better admissible model is more history
+rather than a better algorithm, which is consistent with the four learners landing within
+\num{0.0158} AUC of each other. And heavier regularisation is the wrong first response: it
+would close the gap by moving the training curve down, not by moving the held-out curve up.
+The gap is not evidence that the model is over-parameterised. It is evidence that
+\num{21865} incidents is not yet enough for a 17-attribute problem with this much label noise.
+
+\subsection{Ranking and operating point fail separately}
+
+The chronological result is usually reported as one number, and Section~\ref{sec:temporal}
+shows it is two failures with different remedies. Ranking degrades from \num{0.7859} to
+\num{0.6533} AUC and no threshold recovers that. The operating point degrades much more
+dramatically, from $F_1 = \num{0.6399}$ to $F_1 = \num{0.1596}$ at the default cut point, and
+tuning the cut point on training-period data alone recovers it to \num{0.5072} without
+retraining anything.
+
+Conflating the two produces the wrong operational conclusion in both directions. A team that
+sees only the $F_1$ collapse will retrain a model that did not need retraining. A team that
+sees only the tuned $F_1$ will not learn that its threshold needs re-tuning as the process
+drifts, which on this log it does within a year: median handle time falls from \num{4.73} to
+\num{3.37} hours between the training and evaluation periods.
+
 \subsection{Two defects in our own harness}
+\label{sec:harness-defects}
 
 Two errors were found in the experimental code and corrected before any number reported here
 was produced. Both are recorded because a paper about claims that do not survive verification
@@ -110,11 +159,23 @@ reported the opposite conclusion with the same apparent statistical confidence.
 
 \subsection{Threats to validity}
 
-\textbf{Construct.} The service level label is derived from handle time against a per-priority
-median rather than from a contractual target, because the log's own \texttt{Alert Status}
-field is uniformly \texttt{closed} across \num{46606} of \num{46809} raw incidents and carries
-no usable breach signal. Results should be read as conditional on that operationalisation, and
-the threshold definition is reported so it can be varied.
+\textbf{Construct.} The service level label is derived from handle time against \emph{twice} the
+per-priority median rather than from a contractual target, because the log's own
+\texttt{Alert Status} field is uniformly \texttt{closed} across \num{46606} of \num{46809} raw
+incidents and carries no usable breach signal. Results should be read as conditional on that
+operationalisation, and Equation~\ref{eq:label} states it exactly so it can be varied. On the
+random-split arms the median is taken over the whole log. That is a property of the label and
+not of any feature, no model observes it, and every configuration is scored against the same
+fixed label, so it cannot affect the comparison between configurations; the chronological arm
+re-derives it from training-period cases alone, where it would otherwise matter.
+
+\textbf{Statistical.} The fold-level Wilcoxon signed-rank test at $n=5$ has a smallest
+attainable two-sided $p$-value of \num{0.0625} and therefore cannot reject at
+$\alpha=\num{0.05}$ regardless of effect size. Every fold-level comparison in
+Section~\ref{sec:cv} returns exactly that floor, which means one learner won on all five folds
+and not that the difference is small. Model comparisons are therefore made with 2000-resample
+bootstrap intervals on the test set, and the fold-level result is reported for transparency
+rather than used as evidence.
 
 \textbf{Internal.} Every parameter is fitted on the earliest \SI{80}{\percent} of the timeline,
 and the escalation cut point is tuned on training-period data alone. The chronological holdout

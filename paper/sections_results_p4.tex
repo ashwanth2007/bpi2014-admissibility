@@ -12,13 +12,14 @@ exploratory combinations. Five arrival batches, 30 seeded repeats each, 150 gene
 population 60. All 1,225 runs completed with \textbf{zero capacity violations}, so the repair
 operator satisfies constraint C2 throughout.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Assignment policies on BPI Challenge 2014. Hypervolume is computed against a
 reference point fixed as the nadir across all variants and all runs within a batch. Objectives
 $f_1$ and $f_4$ are maximised, $f_2$ and $f_3$ minimised. Jain's index is reported alongside
 the $f_3$ standard deviation and is not substituted for it.}
 \label{tab:assignment}
+\small
 \begin{tabular}{lrrrrrr}
 \toprule
 Policy & Hypervol. & Front & $f_1$ FTR & $f_2$ breach & $f_3$ load sd & Jain \\
@@ -67,7 +68,7 @@ costs \num{0.0711} hypervolume. Removing adaptive crossover costs \num{0.0002} a
 SLA-aware mutation costs \num{0.0009}, both within run-to-run noise. Reporting the three as a
 bundle would have credited them equally, and that would be wrong.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Ablation. Change in hypervolume when a single component is removed from the proposed
 method. A negative delta means the component contributes.}
@@ -83,6 +84,15 @@ SLA-aware mutation            & 0.4835 & $-0.0009$ \\
 \end{tabular}
 \end{table}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{fig08_ablation.pdf}
+\caption{Component ablation. Removing priority-aware initialisation costs \num{0.0711}
+hypervolume; removing either of the other two costs less than \num{0.001}, which is inside
+run-to-run noise. Reporting the three as a bundle would have credited them equally.}
+\label{fig:ablation}
+\end{figure}
+
 \paragraph{The best configuration is not a significant improvement.}
 Placing the one modification that contributes onto the base algorithm that wins gives the
 highest hypervolume observed, \num{0.5324}. Against plain NSGA-III the paired difference is
@@ -97,7 +107,7 @@ method concentrates work on capable groups to gain outcome quality, which is a t
 operator may or may not want. The exponent $p$ in Equation~\ref{eq:powermean} is the parameter
 through which that preference is expressed rather than assumed.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\textwidth]{fig07_hypervolume_by_variant.pdf}
 \caption{Search quality across algorithm variants. The proposed method improves on its own

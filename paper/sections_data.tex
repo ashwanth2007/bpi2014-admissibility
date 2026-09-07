@@ -1,0 +1,226 @@
+% =====================================================================================
+%  Data, label construction and the admissibility protocol.
+%  Every number here comes from code/results_deep_7030/dataset_stats.csv and
+%  priority_breakdown.csv, written by evaluation/deep_metrics.py.
+% =====================================================================================
+
+\section{Data and the admissibility protocol}
+\label{sec:data}
+
+\subsection{The log}
+
+BPI Challenge 2014 \citep{dongen2014challenge} is the incident-management record of Rabobank
+Nederland Group ICT, released for the 2014 Business Process Intelligence Challenge. It is one
+of the few public logs in which the assignment decision, the resource that received it and the
+eventual outcome are all recorded on real work rather than simulated. Three files are used: an
+incident header, an activity log and an interaction log. Table~\ref{tab:dataset} reports the
+working statistics.
+
+\begin{table}[htbp]
+\centering
+\caption{Dataset statistics. Counts are produced by \texttt{evaluation/deep\_metrics.py} and
+written to \texttt{dataset\_stats.csv}; nothing in this table is typed by hand.}
+\label{tab:dataset}
+\begin{tabular}{lr}
+\toprule
+Property & Value \\
+\midrule
+Raw incident records & \num{31238} \\
+Raw activity events & \num{210837} \\
+Raw interaction records & \num{68358} \\
+Incidents with a resolvable handle time and priority & \num{31236} \\
+Incidents in the predictive modelling matrix & \num{31236} \\
+Distinct first-assignment groups & \num{117} \\
+Distinct configuration-item types & \num{13} \\
+Distinct configuration-item subtypes & \num{58} \\
+Distinct service components (WBS codes) & \num{259} \\
+Admissible attributes after the protocol & \num{17} \\
+Attributes excluded as inadmissible & \num{9} \\
+\midrule
+Breach cases (positive class) & \num{11444} \\
+Non-breach cases (negative class) & \num{19792} \\
+Positive class rate & \num{0.3664} \\
+\midrule
+Training incidents, random \num{70}/\num{30} split & \num{21865} \\
+Test incidents, random \num{70}/\num{30} split & \num{9371} \\
+Training incidents, chronological holdout & \num{24988} \\
+Test incidents, chronological holdout & \num{6248} \\
+\midrule
+Earliest incident open time & 2012-01-10 \\
+Latest incident open time & 2014-12-01 \\
+Observation window & \num{1055} days \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Four properties of the raw files silently corrupt a naive load, and they are recorded here
+because they cost real debugging time and because a reader attempting to reproduce this work
+will meet all four. The files are semicolon delimited rather than comma delimited. They are
+encoded latin-1 rather than UTF-8, so the group names carry mojibake under a UTF-8 read. The
+handle-time column uses a decimal comma, so a direct numeric cast silently produces nulls.
+And the incident header pads to 78 columns with empty trailing delimiters, which shifts the
+column index of every field a naive parser reads positionally.
+
+\subsection{Two working sets, and why they differ}
+\label{sec:two-sets}
+
+The paper has two components with different data requirements, and they operate on different
+subsets of the same log. Reporting one figure for both would be wrong, so both are stated.
+
+The \emph{predictive} component uses every incident with a resolvable handle time and a
+recorded priority, which is \num{31236} incidents across \num{117} distinct first-assignment
+groups. It places no constraint on group size, because a target encoding with a smoothing prior
+handles a rarely used group correctly by shrinking it towards the population rate.
+
+The \emph{assignment} component of Section~\ref{sec:assignment-results} simulates a decision
+over a candidate set, and a candidate set containing groups that have handled three incidents
+in three years is not a realistic decision. It therefore restricts to assignment groups with at
+least \num{50} recorded cases, which leaves \num{15828} incidents, \num{50} groups and
+\num{47} configuration-item categories, of which the earliest \num{12662} by open time form the
+training period on which every parameter is fitted.
+
+\subsection{The service level label}
+\label{sec:label}
+
+The log's own \texttt{Alert Status} field reads \texttt{closed} on \num{46606} of the
+\num{46809} raw records and carries no usable breach signal, so no contractual service level
+target is recoverable from the data. The label is therefore constructed, and the construction
+is stated precisely rather than described loosely.
+
+Let $H_i$ be the recorded handle time of incident $i$ in hours and $\pi(i)$ its priority class.
+Write $\tilde{H}_{p}$ for the median handle time of priority class $p$. An incident breaches
+when
+\begin{equation}
+y_i \;=\; \mathbb{1}\bigl[\, H_i \;>\; \tau_{\pi(i)} \,\bigr],
+\qquad \tau_{p} \;=\; 2\,\tilde{H}_{p}.
+\label{eq:label}
+\end{equation}
+
+The factor of two is a deliberate choice of a lenient target: at a factor of one the positive
+class would be half the data by construction and the label would carry no information beyond
+the median. Table~\ref{tab:priority} gives the resulting thresholds. The breach rate is
+notably flat across priority classes, between \SI{33.6}{\percent} and \SI{37.6}{\percent},
+which is a direct consequence of defining the threshold within each class: the label measures
+whether a case was slow \emph{for its own priority}, not whether it was slow in absolute terms.
+
+\begin{table}[htbp]
+\centering
+\caption{Per-priority volume, median handle time, derived service level threshold and breach
+rate. Priority 1 does not occur in the filtered log.}
+\label{tab:priority}
+\begin{tabular}{lrrrr}
+\toprule
+Priority & Incidents & Median handle (h) & Threshold $\tau_p$ (h) & Breach rate \\
+\midrule
+2 & \num{521}   & 3.68 & 7.36  & 0.3359 \\
+3 & \num{4347}  & 1.58 & 3.17  & 0.3759 \\
+4 & \num{14810} & 4.05 & 8.10  & 0.3629 \\
+5 & \num{11558} & 8.37 & 16.74 & 0.3686 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{fig10_class_balance.pdf}
+\caption{Class balance and priority composition. The positive class is a
+\SI{36.6}{\percent} minority, which is imbalanced enough that accuracy alone would be
+misleading and is why precision, recall, the Matthews correlation coefficient and average
+precision are reported throughout.}
+\label{fig:classbalance}
+\end{figure}
+
+\paragraph{Where the threshold is estimated, and where that matters.}
+For the random-split arms, $\tilde{H}_p$ is computed over the whole log. This is a property of
+the \emph{label}, not of a feature: no model observes $\tilde{H}_p$, and every model is scored
+against the same fixed label, so the comparison between configurations is unaffected. For the
+chronological arm it would nevertheless be wrong, because a system deployed in January 2014
+cannot know the 2014 medians. That arm therefore re-derives $\tau_p$ from training-period cases
+alone, and the effect is reported in Section~\ref{sec:temporal}.
+
+\subsection{The protocol}
+\label{sec:protocol}
+
+Let $t^{\mathrm{dec}}_i$ be the moment the assignment decision for case $i$ is taken, and let
+$\mathcal{F}_{t}$ be the information available to the organisation at time $t$.
+
+\paragraph{Rule 1, feature admissibility.} An attribute $x^{(k)}$ is admissible for case $i$
+only if its value is $\mathcal{F}_{t^{\mathrm{dec}}_i}$-measurable:
+\begin{equation}
+x^{(k)}_i \in \mathcal{F}_{t^{\mathrm{dec}}_i}
+\quad\text{for every case } i .
+\label{eq:rule1}
+\end{equation}
+Any attribute aggregated over the whole closed case violates this by construction, whatever its
+apparent predictive value. This is \citeauthor{kaufman2012leakage}'s legitimacy condition
+\citep{kaufman2012leakage} instantiated at a specific decision point rather than stated in
+general.
+
+\paragraph{Rule 2, encoding admissibility.} A group-level target encoding for group $g$
+evaluated for case $i$ may use only cases resolved strictly before case $i$ opened:
+\begin{equation}
+\hat{\theta}_g(i) \;=\;
+\frac{\sum_{j \in \mathcal{P}(i,g)} y_j \;+\; \alpha \bar{y}_{\mathcal{P}}}
+     {\lvert \mathcal{P}(i,g) \rvert \;+\; \alpha},
+\qquad
+\mathcal{P}(i,g) = \{\, j : g_j = g,\; t^{\mathrm{res}}_j < t^{\mathrm{open}}_i \,\},
+\label{eq:rule2}
+\end{equation}
+with smoothing prior $\alpha = 20$ and $\bar{y}_{\mathcal{P}}$ the prior breach rate over the
+same past set. Operationally this means the encoding is refitted inside every cross-validation
+fold and again on the outer training split, never once over the full data before splitting.
+\citet{pargent2022regularized} show that regularised target encoding outperforms conventional
+categorical handling; the regularisation is exactly what makes refitting necessary, because an
+encoding fitted once over everything contains each row's own label inside its own predictor.
+
+Applying both rules to BPI 2014 admits \num{17} attributes and excludes nine.
+Table~\ref{tab:attributes} lists every one with the reason for its verdict. The table is
+generated from \texttt{feature\_\allowbreak justifications\_\allowbreak leakfree.csv}, which the pipeline writes with a
+\texttt{Known\_\allowbreak at\_\allowbreak assignment\_\allowbreak time} column, so the verdict is a machine-checked property of
+the code rather than a claim in prose.
+
+\begin{table}[htbp]
+\centering
+\caption{Attribute admissibility. Seventeen attributes are admitted, nine excluded. The two
+target encodings are admissible only under Equation~\ref{eq:rule2}; used the way version one of
+this pipeline used them, they are the single largest source of contamination.}
+\label{tab:attributes}
+\small
+\begin{tabular}{L{4.0cm} c L{8.4cm}}
+\toprule
+Attribute & Admitted & Reason \\
+\midrule
+Priority & yes & Impact times urgency as recorded at open. The service level clock is set per priority band. \\
+Impact & yes & Business impact level recorded at open. \\
+Urgency & yes & Urgency level recorded at open, independent of impact. \\
+Open hour & yes & Hour of arrival. Proxies shift staffing, which governs pick-up speed. \\
+Open day of week & yes & Weekday of arrival. Captures the weekly demand cycle. \\
+Is weekend & yes & Reduced staffing materially changes achievable response time. \\
+Is business hours & yes & Out-of-hours arrivals queue until staffed. \\
+Open month & yes & Seasonal load and release-cycle effects. \\
+Queue length at open & yes & Incidents already open at arrival. Computed from other cases only. \\
+Assignment delay hours & yes & Elapsed hours from open to first assignment. Observable at the decision; not total handle time. \\
+CI type & yes & Asset class of the affected configuration item. \\
+CI subtype & yes & Finer-grained asset class. \\
+Service component (WBS) & yes & Work breakdown code of the affected service. \\
+Category & yes & Incident category assigned at intake. \\
+Alert status & yes & Alert state on the record at open. \\
+Group breach rate (encoded) & yes$^{\dagger}$ & Smoothed historical breach rate of the first assignment group, past cases only, prior 20. \\
+Group volume (encoded) & yes$^{\dagger}$ & Case volume of the group, past cases only. Proxies capacity and experience. \\
+\midrule
+Number of reassignments & \textbf{no} & Total over the whole closed case. Rises with duration, which defines the label. \\
+Groups touched & \textbf{no} & Distinct groups over the whole closed case. Post hoc. \\
+Total activity events & \textbf{no} & Every activity event across the closed case. Strongest duration proxy present. \\
+Has reopen & \textbf{no} & Reopens occur late in a case. Post hoc. \\
+Related incidents & \textbf{no} & Final tally on the closed record, not the value visible at open. \\
+Interaction count & \textbf{no} & Aggregated across the full case from the interaction log. Post hoc. \\
+First-call-resolution rate & \textbf{no} & Resolution outcome is known only after handling. \\
+Group mean handle time (v1 form) & \textbf{no} & Mean of the quantity the label thresholds, over the full data before the split. \\
+Group breach rate (v1 form) & \textbf{no} & Mean of the target over the full data including test rows and the row's own label. \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize $^{\dagger}$Admissible only under Equation~\ref{eq:rule2}. The same two
+quantities appear in the excluded list in the form version one of this pipeline computed them.}
+\end{table}

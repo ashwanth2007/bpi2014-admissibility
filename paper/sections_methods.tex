@@ -1,0 +1,323 @@
+% =====================================================================================
+%  Methods. Formal statement of the predictive layer, the two scoring formulations
+%  and the assignment problem. Every constant reported here is fitted, and the file
+%  it is fitted in is named.
+% =====================================================================================
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Notation}
+
+Write $i \in \mathcal{I}$ for an incident and $j \in \mathcal{G}$ for an assignment group, with
+$n = \lvert \mathcal{I} \rvert$ the number of incidents in an arrival batch and
+$m = \lvert \mathcal{G} \rvert$ the number of eligible groups. Case $i$ carries an attribute
+vector $\mathbf{x}_i \in \mathbb{R}^{d}$, a binary service level label $y_i$ from
+Equation~\ref{eq:label}, an open time $t^{\mathrm{open}}_i$, a first-assignment time
+$t^{\mathrm{dec}}_i$ and a resolution time $t^{\mathrm{res}}_i$. The decision variable
+$z_{ij} \in \{0,1\}$ is one when incident $i$ is assigned to group $j$. A hat denotes a
+quantity estimated from data.
+
+\subsection{Predictive layer}
+\label{sec:predictive-methods}
+
+Four gradient-boosted and bagged tree ensembles are evaluated: XGBoost
+\citep{chen2016xgboost}, LightGBM \citep{ke2017lightgbm}, CatBoost
+\citep{prokhorenkova2018catboost} and a random forest \citep{breiman2001random}. Tree ensembles
+rather than deep sequence models are used deliberately.
+\citet{fertig2026revisiting} revisit predictive process monitoring under foundation models and
+find tabular gradient boosting still competitive, and \citet{grinsztajn2022why} give the
+general result that tree ensembles remain ahead of neural networks on tabular data of this
+size. Since the object of study here is the effect of a feature-admissibility constraint, the
+learner is a control variable and is held fixed across configurations rather than tuned per
+configuration.
+
+Class imbalance is handled inside each learner rather than by resampling, so that no synthetic
+rows enter a leakage study: XGBoost receives \texttt{scale\_pos\_weight} set to the training
+negative-to-positive ratio, LightGBM uses \texttt{is\_unbalance}, CatBoost uses balanced
+automatic class weights, and the random forest uses balanced class weights.
+Table~\ref{tab:config} gives the full configuration.
+
+\begin{table}[htbp]
+\centering
+\caption{Experimental configuration. Identical across every configuration and every split, so
+that differences between configurations are attributable to the admissibility constraint and
+not to tuning.}
+\label{tab:config}
+\begin{tabular}{lL{9.4cm}}
+\toprule
+Setting & Value \\
+\midrule
+XGBoost & 300 trees, max depth 6, learning rate 0.05, subsample 0.8, column subsample 0.8, \texttt{scale\_pos\_weight} $=n_-/n_+$, logloss objective \\
+LightGBM & 300 trees, max depth 6, learning rate 0.05, subsample 0.8, column subsample 0.8, \texttt{is\_unbalance} \\
+CatBoost & 300 iterations, depth 6, learning rate 0.05, balanced automatic class weights \\
+Random forest & 300 trees, max depth 12, balanced class weights \\
+\midrule
+Primary split & Stratified random, \num{70}/\num{30}, seed 42 \\
+Replication split & Stratified random, \num{80}/\num{20}, same seed \\
+Causal split & Chronological, earliest \SI{80}{\percent} by open time trains, latest \SI{20}{\percent} evaluates \\
+Cross-validation & Stratified 5-fold on the training split, target encoding refitted inside every fold \\
+Target-encoding prior & $\alpha = 20$ \\
+Decision threshold & 0.5 by default; swept in Section~\ref{sec:threshold}; tuned on a held-out slice of the training period for the chronological arm only \\
+Bootstrap resamples & 2000, percentile intervals \\
+Seed & 42 throughout; two invocations produce bitwise-identical metrics \\
+Hardware & 28-thread x86-64 CPU, no GPU used at any point \\
+Software & Python 3.11, scikit-learn, XGBoost, LightGBM, CatBoost, SHAP, pymoo 0.6.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation metrics}
+\label{sec:metrics}
+
+Write TP, FP, TN and FN for the four confusion-matrix cells at a given decision threshold.
+The reported quantities are
+\begin{align}
+\mathrm{Precision} &= \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}},
+&\mathrm{Recall} &= \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}},
+&\mathrm{Specificity} &= \frac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FP}},
+\label{eq:prec}\\[2pt]
+F_1 &= \frac{2\,\mathrm{TP}}{2\,\mathrm{TP}+\mathrm{FP}+\mathrm{FN}},
+&\mathrm{BA} &= \tfrac{1}{2}\left(\mathrm{Recall}+\mathrm{Specificity}\right),
+\label{eq:f1}
+\end{align}
+together with the Matthews correlation coefficient, which is the only one of these that
+degrades under \emph{both} kinds of error on \emph{both} classes and is therefore the
+single most informative scalar on an imbalanced problem \citep{chicco2020advantages}:
+\begin{equation}
+\mathrm{MCC} = \frac{\mathrm{TP}\cdot\mathrm{TN} - \mathrm{FP}\cdot\mathrm{FN}}
+{\sqrt{(\mathrm{TP}+\mathrm{FP})(\mathrm{TP}+\mathrm{FN})(\mathrm{TN}+\mathrm{FP})(\mathrm{TN}+\mathrm{FN})}} .
+\label{eq:mcc}
+\end{equation}
+
+Threshold-free ranking quality is ROC-AUC, and because the positive class is a
+\SI{36.6}{\percent} minority we also report average precision, the area under the
+precision-recall curve, whose chance level is the class prevalence rather than \num{0.5}.
+Probability quality is the Brier score,
+$\mathrm{BS} = N^{-1}\sum_i (\hat{p}_i - y_i)^2$, reported because the scores feed a downstream
+decision and a ranking that is correct but miscalibrated still produces the wrong action
+\citep{filho2023classifier,perezlebel2025decision}.
+
+Two conventions are used throughout. First, \emph{above-chance signal} means $\mathrm{AUC}-0.5$,
+so a drop from \num{0.8814} to \num{0.7859} is a loss of \num{0.0955} out of \num{0.3814}, which
+is \SI{25.0}{\percent}. Second, every interval reported is a percentile bootstrap interval over
+2000 resamples of the test set, paired across configurations where a difference is quoted.
+
+\subsection{F1: the adaptive assignment score}
+\label{sec:f1}
+
+The assignment score $A(i,j)$ maps an incident-group pair to $[0,1]$ by aggregating seven
+criteria, each of which is normalised to $[0,1]$ and each of which is either a model output or
+a fitted function of observable quantities. Nothing in it is a hand-chosen constant.
+
+\paragraph{$s_1$, outcome propensity.} The isotonic-calibrated probability that the case is
+resolved first time right by group $j$, taken from the predictive layer of
+Section~\ref{sec:predictive-methods}.
+
+\paragraph{$s_2$, service level survival.} $s_2(i,j) = 1 - \hat{P}(\text{breach} \mid i, j)$,
+taken from F2 in Section~\ref{sec:f2}.
+
+\paragraph{$s_3$, expertise match.} Let $\mathbf{r}_i$ be the one-hot requirement vector of the
+incident's configuration-item category and $\mathbf{e}_j$ the group's historical specialisation
+vector, the distribution of categories it has handled during the training period. Expertise is
+the cosine similarity
+\begin{equation}
+s_3(i,j) \;=\; \frac{\mathbf{e}_j \cdot \mathbf{r}_i}
+{\lVert \mathbf{e}_j \rVert_2 \,\lVert \mathbf{r}_i \rVert_2} \;\in\; [0,1].
+\label{eq:cosine}
+\end{equation}
+Cosine rather than a raw count because it is invariant to group volume: a large group that has
+handled every category is not thereby a specialist in any of them.
+
+\paragraph{$s_4$, workload headroom.} Over the post-assignment load vector
+$\boldsymbol{\ell} = (\ell_1,\dots,\ell_m)$, headroom is Jain's fairness index
+\citep{jain1984quantitative}
+\begin{equation}
+s_4 \;=\; \frac{\left(\sum_{k=1}^{m} \ell_k\right)^2}{m \sum_{k=1}^{m} \ell_k^2}
+\;\in\; \left(\tfrac{1}{m},\, 1\right].
+\label{eq:jain}
+\end{equation}
+It is bounded, scale-free and equals one exactly at perfect balance, which the standard
+deviation is not and does not.
+
+\paragraph{$s_5$, freshness.} The probability of a favourable outcome decays with the delay
+before first touch. Fitting an exponential $\exp(-\lambda t)$ by maximum likelihood on the
+training period gives
+$\hat{\lambda} = \num{0.0191}\ \text{h}^{-1}$, \SI{95}{\percent} interval
+$[\num{0.0161}, \num{0.0226}]$, on $n = \num{7041}$ cases. That is a half-life of
+\num{36.3} hours.
+
+\paragraph{$s_6$, urgency.} A logistic ramp in time remaining against the service level target,
+$s_6 = \bigl(1 + \exp(k(\tau - \tau_0))\bigr)^{-1}$, with $\hat{k} = \num{0.0248}$ and
+$\hat{\tau}_0 = \num{-5.63}$ hours fitted on the same training period.
+
+\paragraph{$s_7$, importance.} A weighted geometric blend of normalised priority, impact and
+urgency,
+\begin{equation}
+s_7(i) \;=\; \prod_{c \in \{\text{pri},\text{imp},\text{urg}\}} \tilde{c}_i^{\,\omega_c},
+\qquad \sum_c \omega_c = 1 ,
+\label{eq:importance}
+\end{equation}
+geometric rather than arithmetic so that a low value on one axis cannot be bought back
+completely by a high value on another.
+
+\subsubsection{Aggregation by weighted power mean}
+
+The seven criteria are combined by the weighted power mean of order $p$
+\citep{dyckhoff1984generalized,dujmovic2015weighted}:
+\begin{equation}
+A(i,j) \;=\; \Bigl( \sum_{k=1}^{7} w_k \, s_k(i,j)^{\,p} \Bigr)^{1/p},
+\qquad \sum_k w_k = 1 .
+\label{eq:powermean}
+\end{equation}
+
+The exponent is the point of the formulation, because it makes the degree of permitted
+compensation between criteria an explicit parameter rather than a hidden assumption. At $p=1$
+the mean is arithmetic and fully compensatory, so a strong criterion offsets a weak one; as
+$p \to 0$ it converges to the weighted geometric mean; at $p=-1$ it is harmonic; and as
+$p \to -\infty$ it converges to the minimum and becomes fully non-compensatory. Reporting a
+sensitivity curve over $p$ therefore turns the qualitative claim that one bad criterion should
+or should not sink an assignment into a measured one.
+
+\paragraph{Degeneracy, and the floor it forces.} For $p \le 0$ the mean is undefined or
+identically zero whenever any criterion is exactly zero. Cosine expertise \emph{is} exactly
+zero for a group with no training history in the incident's category, and this occurs in
+\num{50102} of \num{158300} evaluation cells, which is \SI{31.65}{\percent}. An explicit floor
+of $\varepsilon = 10^{-3}$ is therefore applied before any $p \le 0$ aggregation. It is reported
+as a parameter of the method rather than buried as an implementation detail, because it changes
+the value of the score in a third of all cells.
+
+\subsubsection{Weighting}
+
+Three weighting schemes are computed and all three are reported. CRITIC
+\citep{diakoulaki1995determining} derives weight from contrast intensity times conflict. With
+the decision matrix min-max normalised to $\mathbf{Z}$, standard deviation $\sigma_k$ per
+column and Pearson correlation $\rho_{k\ell}$ between columns,
+\begin{equation}
+w^{\mathrm{CRITIC}}_k \;\propto\; \sigma_k \sum_{\ell=1}^{7} \bigl(1 - \rho_{k\ell}\bigr).
+\label{eq:critic}
+\end{equation}
+Entropy weighting takes $P_{ik} = Z_{ik} / \sum_i Z_{ik}$, computes
+$E_k = -\left(\ln N\right)^{-1}\sum_i P_{ik} \ln P_{ik}$ and sets
+$w^{\mathrm{ent}}_k \propto 1 - E_k$. Uniform weighting sets $w_k = 1/7$.
+
+CRITIC alone would be unsafe here, and the reason is structural rather than a matter of taste.
+Two of the seven criteria are model outputs, so their spread reflects the calibration of a
+classifier rather than the importance of a criterion, and isotonic calibration compresses
+variance. Reporting CRITIC alone would launder a modelling artifact into a data-driven weight.
+The question is therefore settled empirically, by measuring whether the induced assignment
+ordering depends on the scheme at all (Section~\ref{sec:weighting-results}).
+
+\subsection{F2: service level risk as a derived quantity}
+\label{sec:f2}
+
+Modelling breach directly as the survival event is degenerate on this log, and this was
+established empirically before the design was changed rather than assumed. Because the label is
+defined by handle time exceeding a per-priority threshold, a case that has been open longer than
+its own threshold has already breached: the measured breach rate past threshold is exactly
+\num{1.0000}. A hazard model given elapsed time and priority therefore reads its label rather
+than predicting it. An early version of this model scored \num{0.9418} AUC while learning
+nothing, and that number is reported here as a worked example of the failure mode the paper is
+about.
+
+The admissible object is the hazard of \emph{resolution}, which elapsed time does not determine.
+Each case contributes one row per elapsed-time bin it survives into, over the ten bins with
+edges at $0, 1, 2, 4, 8, 16, 24, 48, 96, 168$ hours and an open final bin. The expansion turns
+\num{15828} cases into \num{69867} person-period rows, a factor of \num{4.41}, with a per-bin
+resolution rate of \num{0.2260}. A gradient-boosted classifier estimates the discrete hazard
+\begin{equation}
+h(t \mid \mathbf{x}) \;=\; P\bigl(t^{\mathrm{res}} \in b_t \;\big|\; t^{\mathrm{res}} \ge b_t,\, \mathbf{x}\bigr)
+\label{eq:hazard}
+\end{equation}
+directly, which is the discrete-time survival formulation of \citet{suresh2022survival}.
+Survival follows by the product rule and breach risk is the conditional survival ratio:
+\begin{equation}
+S(t \mid \mathbf{x}) = \prod_{u \le t} \bigl(1 - h(u \mid \mathbf{x})\bigr),
+\qquad
+P\bigl(\text{breach} \mid \text{alive at } t, \mathbf{x}\bigr) = \frac{S(\tau \mid \mathbf{x})}{S(t \mid \mathbf{x})},
+\label{eq:survival}
+\end{equation}
+where $\tau$ is the case's own service level threshold from Equation~\ref{eq:label}. Monotonicity
+of $S$ is asserted as a test rather than assumed, and the test passes.
+
+The covariates are priority, impact, urgency, assignment delay, category, the bin index and the
+bin start time, all of which satisfy Equation~\ref{eq:rule1}. The escalation cut point is tuned
+on training-period data alone and then frozen at \num{0.5305}; tuning it on the evaluation
+period would reproduce, on the time axis, exactly the leak this paper measures on the feature
+axis.
+
+\subsection{Multi-objective assignment}
+\label{sec:moo}
+
+A batch of $n$ incidents must be assigned across $m$ eligible groups. The formulation is
+\begin{align}
+\text{maximise} \quad & f_1(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, \hat{p}^{\mathrm{ftr}}_{ij}
+&& \text{(first-time-right resolution)} \label{eq:f1obj}\\
+\text{minimise} \quad & f_2(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, \hat{p}^{\mathrm{breach}}_{ij}
+&& \text{(service level breach)} \label{eq:f2obj}\\
+\text{minimise} \quad & f_3(\mathbf{z}) = \operatorname{sd}\bigl(\ell_1,\dots,\ell_m\bigr),
+\quad \ell_j = \textstyle\sum_i z_{ij}
+&& \text{(workload imbalance)} \label{eq:f3obj}\\
+\text{maximise} \quad & f_4(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, s_3(i,j)
+&& \text{(expertise match)} \label{eq:f4obj}\\
+\text{minimise} \quad & f_5(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, \hat{d}_{ij}
+&& \text{(expected delay before first touch)} \label{eq:f5obj}
+\end{align}
+subject to
+\begin{align}
+\text{C1:}\quad & \sum_{j} z_{ij} = 1 && \forall i \quad\text{(each incident assigned exactly once)}\\
+\text{C2:}\quad & \sum_{i} z_{ij} \le \kappa_j && \forall j \quad\text{(group capacity)}\\
+\text{C3:}\quad & z_{ij} \le a_j && \forall i,j \quad\text{(group availability)}\\
+\text{C4:}\quad & z_{ij} \, s_3(i,j) \ge \eta \, z_{ij} && \forall i,j \quad\text{(minimum expertise eligibility)}
+\end{align}
+with $z_{ij}\in\{0,1\}$. Constraint C2 is enforced by a bounded repair operator rather than by
+penalty, so that no infeasible solution can enter the population; the operator is capped at six
+passes and its effect is verified by counting violations, which are zero across all
+\num{1225} runs.
+
+Workload imbalance is kept as the standard deviation in $f_3$. Jain's index of
+Equation~\ref{eq:jain} is reported \emph{alongside} it for every policy and never substituted
+for it, because changing an objective after observing that a method loses on it would be
+fitting the metric to the result.
+
+\subsubsection{The proposed operators}
+
+Three modifications to NSGA-II \citep{deb2002fast} are proposed and, critically, are ablated
+individually rather than reported as a bundle.
+
+\begin{description}
+\item[Priority-aware initialisation.] A fraction of the initial population is constructed
+greedily in descending order of incident priority rather than sampled uniformly, so that the
+search starts from solutions in which urgent cases already sit with capable groups.
+\item[Adaptive crossover.] The crossover probability rises when population diversity, measured
+as the mean pairwise assignment Hamming distance, falls below a threshold.
+\item[Service-level-aware mutation.] Mutation is biased towards reassigning the incidents with
+the highest current breach probability.
+\end{description}
+
+\begin{algorithm}[htbp]
+\caption{Priority-aware adaptive NSGA-II (PAA-NSGA-II). Differences from standard NSGA-II are
+lines 1, 6 and 7.}
+\label{alg:paa}
+\begin{algorithmic}[1]
+\State $P_0 \gets$ \textsc{PriorityAwareInit}$(N, \rho)$ \Comment{$\rho$ of $N$ built greedily by descending priority}
+\State $P_0 \gets$ \textsc{CapacityRepair}$(P_0)$
+\For{$g = 1$ \textbf{to} $G$}
+  \State $\delta \gets$ \textsc{Diversity}$(P_{g-1})$ \Comment{mean pairwise Hamming distance}
+  \State $Q \gets$ \textsc{TournamentSelect}$(P_{g-1})$
+  \State $Q \gets$ \textsc{Crossover}$(Q, \; p_c(\delta))$ \Comment{$p_c$ raised when $\delta$ is low}
+  \State $Q \gets$ \textsc{Mutate}$(Q, \; p_m,\; \text{bias} \propto \hat{p}^{\mathrm{breach}})$
+  \State $Q \gets$ \textsc{CapacityRepair}$(Q)$
+  \State $R \gets P_{g-1} \cup Q$
+  \State $\mathcal{F} \gets$ \textsc{FastNonDominatedSort}$(R)$ \Comment{$O(MN^2)$}
+  \State $P_g \gets$ \textsc{SelectByRankAndCrowding}$(\mathcal{F}, N)$
+\EndFor
+\State \Return non-dominated front of $P_G$
+\end{algorithmic}
+\end{algorithm}
+
+Hypervolume is computed against a reference point fixed as the nadir across all variants and all
+runs within a batch, in a first pass completed before any hypervolume is taken. This matters:
+the alternative, taking the reference point from whichever run finished first, makes every
+hypervolume value depend on execution order, and correcting it reversed the sign of this study's
+headline comparison (Section~\ref{sec:harness-defects}).

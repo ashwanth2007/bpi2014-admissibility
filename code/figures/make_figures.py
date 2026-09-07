@@ -111,8 +111,8 @@ def fig_leakage_waterfall():
         return
     d = pd.read_csv(p)
     x = d[d.Model == "XGBoost"].set_index("Config")["Test_AUC"]
-    labels = ["Contaminated\n(published style)", "Leak-free\n(random split)",
-              "Leak-free\n(chronological)"]
+    labels = ["Unconstrained\n(default practice)", "Admissible\n(random split)",
+              "Admissible\n(chronological)"]
     vals = [x.get("contaminated_v1"), x.get("leakfree"), x.get("leakfree_temporal")]
     if any(v is None or (isinstance(v, float) and np.isnan(v)) for v in vals):
         SKIPPED.append(("fig02", ["config rows"]))
@@ -139,7 +139,7 @@ def fig_model_comparison():
         return
     d = pd.read_csv(p)
     cfgs = ["contaminated_v1", "leakfree", "leakfree_temporal"]
-    names = ["Contaminated", "Leak-free", "Leak-free chronological"]
+    names = ["Unconstrained", "Admissible", "Admissible chronological"]
     models = ["XGBoost", "LightGBM", "CatBoost", "RandomForest"]
     fig, ax = plt.subplots(figsize=(5.6, 3.2))
     w, xs = 0.26, np.arange(len(models))

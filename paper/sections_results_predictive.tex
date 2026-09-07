@@ -1,0 +1,526 @@
+% =====================================================================================
+%  Predictive-layer results. Every number traces to code/results_deep_7030/ or
+%  code/results_bpi_leakfree_7030/, written by evaluation/deep_metrics.py and
+%  bpi2014_pipeline_leakfree.py. Both reproduce bitwise on a reseeded rerun.
+% =====================================================================================
+
+\section{Results: the predictive layer}
+\label{sec:results-predictive}
+
+\subsection{The cost of admissibility}
+\label{sec:cost}
+
+Table~\ref{tab:cost} reports the same experiment under three configurations for each of the
+four learners. The unconstrained configuration is the one a practitioner reaches for by
+default: every attribute present in the log, group statistics computed once over the whole
+dataset. The admissible configuration applies Rules 1 and 2. The chronological configuration
+applies them and additionally moves evaluation forward in time.
+
+\begin{table}[htbp]
+\centering
+\caption{Held-out ROC-AUC under the three configurations, \num{70}/\num{30} split. The cost
+column is the loss from enforcing admissibility, with a \SI{95}{\percent} paired bootstrap
+interval over 2000 resamples. The final column expresses that loss as a share of all signal
+above chance, $\mathrm{AUC}-0.5$.}
+\label{tab:cost}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Learner & Unconstrained & Admissible & Chronological & Cost (95\% CI) & Share of signal \\
+\midrule
+XGBoost      & 0.8814 & \textbf{0.7859} & 0.6533 & 0.0955 [0.0838, 0.1074] & \SI{25.0}{\percent} \\
+LightGBM     & 0.8795 & 0.7825 & 0.6456 & 0.0970 [0.0850, 0.1087] & \SI{25.6}{\percent} \\
+CatBoost     & 0.8737 & 0.7701 & 0.6387 & 0.1036 [0.0918, 0.1165] & \SI{27.7}{\percent} \\
+Random forest& 0.8720 & 0.7727 & 0.6310 & 0.0993 [0.0876, 0.1115] & \SI{26.7}{\percent} \\
+\midrule
+Attributes   & 20 & 17 & 17 & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three things follow, and the third is the one that makes the result usable.
+
+The loss is large. Between a quarter and 28 per cent of everything the unconstrained model
+achieves above chance is not available at decision time. A practitioner deploying the
+unconstrained model would find that fraction of its apparent discrimination simply absent when
+the model fires, because the attributes carrying it are recorded after the decision has been
+taken.
+
+The loss is not a property of one learner. All four lose between \num{0.0955} and \num{0.1036}
+AUC, and every \SI{95}{\percent} interval excludes zero by a wide margin: the smallest lower
+bound is \num{0.0838}, more than eight times the standard error of a single AUC estimate on
+this test set. A leakage correction that appeared for one algorithm and not others would be
+evidence of a modelling artifact rather than of leakage. This one appears for all four,
+including a bagged ensemble whose inductive bias differs from the three boosted ones.
+
+The loss is not an artifact of the split. Repeating the whole protocol at \num{80}/\num{20}
+gives \num{0.8833} unconstrained against \num{0.7877} admissible, a cost of \num{0.0956}, which
+agrees with the \num{70}/\num{30} estimate to within \num{0.0002} AUC.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.68\textwidth]{fig02_cost_of_admissibility.pdf}
+\caption{Where the unconstrained model's discrimination goes when each rule is applied.}
+\label{fig:waterfall}
+\end{figure}
+
+\subsection{The full comparison}
+\label{sec:full-comparison}
+
+AUC is threshold-free and therefore says nothing about how a deployed model behaves at an
+operating point. Table~\ref{tab:full} reports ten metrics for every learner under every
+configuration at the default threshold of \num{0.5}.
+
+\begin{table}[htbp]
+\centering
+\caption{Complete metric set, \num{70}/\num{30} split, decision threshold \num{0.5}. Chance
+average precision is the class prevalence, \num{0.3664}. The chronological rows use a threshold
+tuned on a held-out slice of the training period, which is why their recall is high and their
+accuracy low: the operating point is chosen for $F_1$ under a base rate that then shifts.}
+\label{tab:full}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrrrrrr}
+\toprule
+Configuration & Learner & Acc. & Prec. & Rec. & Spec. & $F_1$ & MCC & AUC & AP & Brier \\
+\midrule
+Unconstrained & XGBoost      & 0.7915 & 0.6873 & 0.7906 & 0.7920 & 0.7353 & 0.5684 & 0.8814 & 0.8242 & 0.1386 \\
+Unconstrained & LightGBM     & 0.7867 & 0.6804 & 0.7876 & 0.7861 & 0.7301 & 0.5594 & 0.8795 & 0.8208 & 0.1403 \\
+Unconstrained & CatBoost     & 0.7853 & 0.6796 & 0.7833 & 0.7865 & 0.7277 & 0.5558 & 0.8737 & 0.8138 & 0.1438 \\
+Unconstrained & Random forest& 0.7856 & 0.6872 & 0.7614 & 0.7996 & 0.7224 & 0.5504 & 0.8720 & 0.8068 & 0.1430 \\
+\midrule
+Admissible & XGBoost      & \textbf{0.7213} & 0.6074 & 0.6761 & 0.7474 & \textbf{0.6399} & \textbf{0.4152} & \textbf{0.7859} & \textbf{0.6888} & \textbf{0.1861} \\
+Admissible & LightGBM     & 0.7166 & 0.6020 & 0.6679 & 0.7447 & 0.6333 & 0.4048 & 0.7825 & 0.6843 & 0.1881 \\
+Admissible & CatBoost     & 0.7015 & 0.5818 & 0.6589 & 0.7262 & 0.6179 & 0.3766 & 0.7701 & 0.6686 & 0.1939 \\
+Admissible & Random forest& 0.7185 & 0.6155 & 0.6170 & 0.7772 & 0.6162 & 0.3940 & 0.7727 & 0.6672 & 0.1900 \\
+\midrule
+Chronological & XGBoost      & 0.4691 & 0.3553 & 0.8858 & --- & 0.5072 & --- & 0.6533 & --- & 0.2037 \\
+Chronological & LightGBM     & 0.4854 & 0.3589 & 0.8500 & --- & 0.5047 & --- & 0.6456 & --- & 0.2029 \\
+Chronological & CatBoost     & 0.4627 & 0.3448 & 0.8246 & --- & 0.4863 & --- & 0.6387 & --- & 0.2025 \\
+Chronological & Random forest& 0.4595 & 0.3429 & 0.8210 & --- & 0.4837 & --- & 0.6310 & --- & 0.2035 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ordering of learners is stable across every metric and both configurations: XGBoost first,
+LightGBM second, then the random forest and CatBoost trading places depending on whether the
+metric rewards ranking or thresholded decisions. The gap between XGBoost and LightGBM is
+\num{0.0034} AUC with a paired bootstrap interval of $[-0.0099, 0.0170]$, so it is not
+distinguishable; the gaps to CatBoost ($+\num{0.0159}$, $[0.0020, 0.0297]$) and to the random
+forest ($+\num{0.0134}$, $[0.0006, 0.0269]$) both exclude zero. XGBoost is used for every
+subsequent single-model analysis on that basis.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{fig03_model_comparison.pdf}
+\caption{Learner comparison across configurations. The correction is of the same size for every
+learner, which is what distinguishes a leakage effect from a modelling artifact.}
+\label{fig:modelcomp}
+\end{figure}
+
+\subsection{Where the admissible model fails}
+\label{sec:confusion}
+
+Table~\ref{tab:confusion} and Figure~\ref{fig:confusion} give the confusion matrices. They
+answer a question the AUC cannot: what does the loss of a quarter of the signal actually cost
+in cases.
+
+\begin{table}[htbp]
+\centering
+\caption{Confusion matrices on the \num{9371} held-out incidents, threshold \num{0.5}. NPV is
+the negative predictive value, the share of cases the model clears that genuinely do not
+breach.}
+\label{tab:confusion}
+\small
+\begin{tabular}{llrrrrrrr}
+\toprule
+Configuration & Learner & TN & FP & FN & TP & Specificity & NPV & MCC \\
+\midrule
+Unconstrained & XGBoost       & 4703 & 1235 & 719  & 2714 & 0.7920 & 0.8674 & 0.5684 \\
+Unconstrained & LightGBM      & 4668 & 1270 & 729  & 2704 & 0.7861 & 0.8649 & 0.5594 \\
+Unconstrained & CatBoost      & 4670 & 1268 & 744  & 2689 & 0.7865 & 0.8626 & 0.5558 \\
+Unconstrained & Random forest & 4748 & 1190 & 819  & 2614 & 0.7996 & 0.8529 & 0.5504 \\
+\midrule
+Admissible & XGBoost       & 4438 & 1500 & 1112 & 2321 & 0.7474 & 0.7996 & 0.4152 \\
+Admissible & LightGBM      & 4422 & 1516 & 1140 & 2293 & 0.7447 & 0.7950 & 0.4048 \\
+Admissible & CatBoost      & 4312 & 1626 & 1171 & 2262 & 0.7262 & 0.7864 & 0.3766 \\
+Admissible & Random forest & 4615 & 1323 & 1315 & 2118 & 0.7772 & 0.7782 & 0.3940 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig11_confusion_matrices.pdf}
+\caption{Confusion matrices. Cell labels give counts and row-normalised percentages. Panel (a)
+is the model a practitioner would build without the protocol; panel (b) is the same learner
+under it.}
+\label{fig:confusion}
+\end{figure}
+
+Enforcing admissibility moves \num{393} breaches from correctly caught to missed, taking recall
+from \SI{79.1}{\percent} to \SI{67.6}{\percent}, and adds \num{265} false alarms. In operational
+terms, an escalation queue built on the unconstrained model would appear to catch four breaches
+in five, and would in fact catch two in three. That difference, \num{393} cases in a
+three-month evaluation window, is the concrete form of the \num{0.0955} AUC.
+
+The random forest shows the trade the other way. It has the best specificity of the four
+admissible models at \num{0.7772} and the worst recall at \num{0.6170}: it declares breach less
+often, so it is right more often when it does and misses more when it does not. This is why the
+MCC column matters. On accuracy the random forest (\num{0.7185}) looks close to XGBoost
+(\num{0.7213}); on MCC, which is sensitive to both error types on both classes, the gap widens
+to \num{0.3940} against \num{0.4152}.
+
+\subsection{Ranking behaviour across the whole operating range}
+
+Figure~\ref{fig:roc} gives ROC curves and Figure~\ref{fig:pr} precision-recall curves. The
+precision-recall view is the more informative of the two here, because the positive class is a
+\SI{36.6}{\percent} minority and ROC curves are optimistic under imbalance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.96\textwidth]{fig12_roc_curves.pdf}
+\caption{ROC curves for all four learners under both configurations. The four curves are almost
+superimposed within each panel, which is the visual form of the result that the learner choice
+is not what drives performance here.}
+\label{fig:roc}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.96\textwidth]{fig13_pr_curves.pdf}
+\caption{Precision-recall curves. The dashed line is the chance level, which under
+precision-recall is the class prevalence \num{0.3664} rather than \num{0.5}.}
+\label{fig:pr}
+\end{figure}
+
+Average precision falls from \num{0.8242} to \num{0.6888} for XGBoost when admissibility is
+enforced, a relative loss of \SI{16.4}{\percent}, and both remain far above the chance level of
+\num{0.3664}. The shape of the admissible curve is the operationally relevant part: precision
+holds above \num{0.8} only up to about \num{0.2} recall, then falls steadily. A service desk
+that wants to escalate the riskiest \SI{10}{\percent} of arrivals can do so at roughly
+\SI{82}{\percent} precision; one that wants to catch \SI{90}{\percent} of breaches must accept
+precision below 
+um{0.47} and must look at seven incidents in ten.
+
+\subsection{What admissibility buys}
+\label{sec:ladder}
+
+A leakage finding invites a wrong conclusion, that the answer is to use fewer attributes.
+Table~\ref{tab:ladder} shows it is not.
+
+\begin{table}[htbp]
+\centering
+\caption{The admissible feature ladder, XGBoost, \num{70}/\num{30}. Every rung uses only
+attributes that satisfy Equation~\ref{eq:rule1}; no inadmissible attribute contributes to any
+row. This doubles as an incremental ablation of the feature groups.}
+\label{tab:ladder}
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+Rung & Added information & $k$ & CV-AUC & Test AUC & $F_1$ & Precision & Recall \\
+\midrule
+1 & Priority, impact, urgency        & 3  & 0.5111 & 0.5076 & 0.4376 & 0.3725 & 0.5304 \\
+2 & \quad + arrival-time context     & 8  & 0.5576 & 0.5616 & 0.4440 & 0.4098 & 0.4844 \\
+3 & \quad + queue state and delay    & 10 & 0.6516 & 0.6574 & 0.5015 & 0.4814 & 0.5234 \\
+4 & \quad + configuration item and category & 15 & 0.7764 & 0.7767 & 0.6327 & 0.5859 & 0.6877 \\
+5 & \quad + admissible group encodings & 17 & 0.7850 & \textbf{0.7859} & 0.6399 & 0.6074 & 0.6761 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Discrimination rises monotonically from \num{0.5076}, which is chance, to \num{0.7859}. The
+gain from eight to seventeen attributes is \num{0.2243} AUC, reproduced to within \num{0.003}
+at \num{80}/\num{20}. Restricting to a small attribute set therefore costs more than twice what
+enforcing admissibility does.
+
+The ladder also localises where the signal lives. The single largest jump is rung 3 to rung 4,
+$+\num{0.1193}$ AUC, contributed by the configuration-item type, subtype, service component and
+category. What the incident is \emph{about} matters more than when it arrived or how busy the
+desk was. The admissible group encodings add \num{0.0092} on top, which is real but an order of
+magnitude smaller than the \num{0.0955} their inadmissible forms were worth in the
+unconstrained configuration. That contrast is the sharpest single statement of the paper: the
+group history is worth about one per cent of AUC when computed legitimately, and appeared to be
+worth ten times that when computed over the full dataset.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{fig01_admissibility_ladder.pdf}
+\caption{The admissible feature ladder under both split ratios. The two curves agree to within
+\num{0.003} AUC at every rung.}
+\label{fig:ladder}
+\end{figure}
+
+\subsection{Overfitting, underfitting and how much data the problem needs}
+\label{sec:learning}
+
+Table~\ref{tab:learning} and Figure~\ref{fig:learning} report the learning curve: training and
+held-out AUC for the admissible XGBoost model as the training set grows from \num{1093} to
+\num{21865} incidents.
+
+\begin{table}[htbp]
+\centering
+\caption{Learning curve, admissible XGBoost. The gap is training AUC minus held-out AUC. The
+final row is the model reported everywhere else in this paper.}
+\label{tab:learning}
+\begin{tabular}{rrrrr}
+\toprule
+Fraction of training set & Incidents & Training AUC & Held-out AUC & Gap \\
+\midrule
+0.05 & 1093  & 0.9977 & 0.6723 & 0.3254 \\
+0.10 & 2186  & 0.9868 & 0.7075 & 0.2793 \\
+0.20 & 4373  & 0.9535 & 0.7394 & 0.2141 \\
+0.30 & 6559  & 0.9282 & 0.7580 & 0.1702 \\
+0.40 & 8746  & 0.9120 & 0.7644 & 0.1476 \\
+0.50 & 10932 & 0.9042 & 0.7723 & 0.1318 \\
+0.60 & 13119 & 0.8903 & 0.7773 & 0.1131 \\
+0.70 & 15305 & 0.8807 & 0.7785 & 0.1022 \\
+0.85 & 18585 & 0.8718 & 0.7822 & 0.0896 \\
+1.00 & 21865 & 0.8647 & 0.7844 & 0.0804 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{fig14_learning_curve.pdf}
+\caption{Learning curve and generalisation gap. The two curves converge towards each other
+throughout and have not met, which is the signature of a model that is still data-limited
+rather than capacity-limited.}
+\label{fig:learning}
+\end{figure}
+
+Three readings, and we state the unflattering one rather than only the reassuring ones.
+
+The model is not underfitting. Training AUC is \num{0.9977} at \num{1093} incidents, so a
+300-tree depth-6 ensemble has ample capacity to memorise this feature space; the constraint is
+information, not model class.
+
+The model does overfit, and measurably. The gap at full training size is \num{0.0804}. That is
+not negligible, and it is the honest answer to the question of whether \num{0.7859} is the
+model's true ability: it is the held-out estimate, and the training estimate is \num{0.0804}
+higher because 300 trees at depth 6 fit noise the test set does not contain.
+
+The overfitting is shrinking with data, not with regularisation. The gap falls monotonically
+from \num{0.3254} to \num{0.0804} across a twentyfold increase in training data, and its rate of
+decline has not flattened: the last three points give \num{0.1022}, \num{0.0896} and
+\num{0.0804}. Held-out AUC over the same span rises from \num{0.7785} to \num{0.7844} and is
+still climbing. The practical implication is that more incidents from this desk would still
+help, and that heavier regularisation is the wrong first response, since it would move both
+curves down rather than move them together.
+
+\subsection{Cross-validation stability}
+\label{sec:cv}
+
+Table~\ref{tab:folds} gives the per-fold cross-validation AUC on the training split, with the
+target encoding refitted inside each fold under Equation~\ref{eq:rule2}.
+
+\begin{table}[htbp]
+\centering
+\caption{Five-fold stratified cross-validation AUC on the admissible configuration. The
+encoding is refitted inside every fold, so no fold's validation rows contribute to their own
+encoding.}
+\label{tab:folds}
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+Learner & Fold 1 & Fold 2 & Fold 3 & Fold 4 & Fold 5 & Mean & SD \\
+\midrule
+XGBoost       & 0.7840 & 0.7869 & 0.7938 & 0.7844 & 0.7759 & \textbf{0.7850} & 0.0064 \\
+LightGBM      & 0.7785 & 0.7859 & 0.7890 & 0.7840 & 0.7741 & 0.7823 & 0.0060 \\
+Random forest & 0.7694 & 0.7785 & 0.7788 & 0.7768 & 0.7603 & 0.7728 & 0.0079 \\
+CatBoost      & 0.7672 & 0.7723 & 0.7781 & 0.7713 & 0.7647 & 0.7707 & 0.0051 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The cross-validation mean of \num{0.7850} and the held-out value of \num{0.7859} agree to
+\num{0.0009}, so the held-out estimate is not a lucky split. Fold-to-fold standard deviation is
+\num{0.0064}, an order of magnitude smaller than the \num{0.0955} cost of admissibility, which
+is what licenses treating that cost as a real effect rather than as sampling noise.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.96\textwidth]{fig18_fold_spread_and_intervals.pdf}
+\caption{Fold spread and bootstrap intervals. Panel (b) shows why the two configurations are
+distinguishable and the four learners within a configuration largely are not: the
+between-configuration separation is roughly ten times the width of any single interval.}
+\label{fig:folds}
+\end{figure}
+
+\paragraph{A limit of the fold-level test, stated rather than hidden.} A paired Wilcoxon
+signed-rank test over five folds has a smallest attainable two-sided $p$-value of
+\num{0.0625}, because there are only $2^5 = 32$ sign assignments. Every fold-level comparison
+here returns exactly that value, which means XGBoost beat each competitor on all five folds and
+that the test cannot reject at $\alpha = \num{0.05}$ no matter how large the effect. This is a
+property of the test at $n=5$, not evidence of a small effect, and it is why the model
+comparisons in Section~\ref{sec:full-comparison} are made with 2000-resample bootstrap
+intervals on the test set instead.
+
+\subsection{The operating point}
+\label{sec:threshold}
+
+The default threshold of \num{0.5} is a convention, not a decision. Table~\ref{tab:threshold}
+sweeps it.
+
+\begin{table}[htbp]
+\centering
+\caption{Threshold sweep, admissible XGBoost. Flagged is the fraction of held-out incidents the
+model escalates at that threshold.}
+\label{tab:threshold}
+\begin{tabular}{rrrrrr}
+\toprule
+Threshold & Precision & Recall & $F_1$ & Accuracy & Flagged \\
+\midrule
+0.20 & 0.4203 & 0.9729 & 0.5870 & 0.4985 & 0.8480 \\
+0.30 & 0.4691 & 0.9053 & 0.6180 & 0.5900 & 0.7070 \\
+0.40 & 0.5378 & 0.7955 & 0.6418 & 0.6746 & 0.5419 \\
+0.45 & 0.5766 & 0.7387 & \textbf{0.6477} & 0.7056 & 0.4693 \\
+0.50 & 0.6074 & 0.6761 & 0.6399 & 0.7213 & 0.4077 \\
+0.60 & 0.6715 & 0.5435 & 0.6008 & 0.7354 & 0.2966 \\
+0.70 & 0.7398 & 0.4026 & 0.5214 & 0.7293 & 0.1993 \\
+0.80 & 0.8227 & 0.2284 & 0.3575 & 0.6993 & 0.1017 \\
+0.90 & 0.9197 & 0.0801 & 0.1474 & 0.6604 & 0.0319 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{fig16_threshold_sweep.pdf}
+\caption{Precision, recall and $F_1$ against the decision threshold. $F_1$ peaks at
+\num{0.45}, not at the default \num{0.50}.}
+\label{fig:threshold}
+\end{figure}
+
+$F_1$ peaks at \num{0.6477} at a threshold of \num{0.45} rather than at the default, though the
+difference from \num{0.5} is \num{0.0078} and is not worth much on its own. The useful part of
+the table is the shape of the trade. At \num{0.90} the model escalates \SI{3.2}{\percent} of
+arrivals at \SI{92.0}{\percent} precision; at \num{0.30} it escalates \SI{70.7}{\percent} of
+them and catches \SI{90.5}{\percent} of breaches. A service desk with one spare senior engineer
+and one with a whole escalation team are choosing different points on the same curve, and
+neither is at \num{0.5}. This is the argument for reporting the sweep rather than a single
+$F_1$.
+
+\subsection{Calibration}
+\label{sec:calibration}
+
+Because the scores feed a downstream decision, a correct ordering with wrong probabilities is
+still an operational failure \citep{perezlebel2025decision}. Figure~\ref{fig:calibration} gives
+the reliability diagram before and after isotonic regression, with the calibrator fitted on
+out-of-fold training predictions and never on the test set.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.52\textwidth]{fig15_calibration.pdf}
+\caption{Reliability of the admissible XGBoost model. Isotonic calibration reduces the Brier
+score from \num{0.1861} to \num{0.1769} while leaving AUC unchanged at \num{0.7859} against
+\num{0.7858}, as a monotone transform must.}
+\label{fig:calibration}
+\end{figure}
+
+The raw model is miscalibrated in the direction its class weighting predicts. Because
+\texttt{scale\_pos\_weight} is set to the negative-to-positive ratio, the raw scores are pushed
+towards the positive class and overstate breach probability in the middle of the range.
+Isotonic regression removes \SI{4.9}{\percent} of the Brier score, and it is a monotone map, so
+AUC moves by \num{0.0001}, which is the expected behaviour and a useful check that nothing else
+changed.
+
+\subsection{The chronological holdout}
+\label{sec:temporal}
+
+Every result above uses a random split. Event logs are temporal, and a random split lets the
+model train on cases that arrived after the ones it is evaluated on. The chronological arm
+trains on the earliest \SI{80}{\percent} of arrivals and evaluates on the latest
+\SI{20}{\percent}, re-derives the label threshold from training-period medians alone, and tunes
+the decision threshold on a validation slice taken from the end of the training period.
+
+Held-out AUC falls from \num{0.7859} to \num{0.6533}, a further loss of \num{0.1326} on top of
+the admissibility cost. The cause is measurable drift rather than a defect. The training period
+runs from 2012-01-10 to 2014-01-13 and the evaluation period from 2014-01-13 to 2014-12-01;
+across that boundary the median handle time falls from \num{4.73} to \num{3.37} hours and the
+breach rate under the causal label falls from \SI{36.6}{\percent} to \SI{30.8}{\percent}. The
+Rabobank process got faster. AUC is threshold-free, so the drop is genuine ranking degradation
+and not a base-rate artifact.
+
+Table~\ref{tab:temporal} separates the two failures, which are usually reported as one and are
+not the same thing.
+
+\begin{table}[htbp]
+\centering
+\caption{Chronological holdout on \num{6248} future incidents. Each learner appears twice with
+identical predicted probabilities and therefore identical AUC; only the decision threshold
+differs. The default cut point is a ranking that is fine and an operating point that is wrong.}
+\label{tab:temporal}
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+Learner & Threshold rule & Cut & Accuracy & Precision & Recall & $F_1$ & AUC \\
+\midrule
+XGBoost       & default        & 0.50 & 0.7033 & 0.6308 & 0.0913 & 0.1596 & 0.6533 \\
+XGBoost       & tuned on train & 0.13 & 0.4691 & 0.3553 & 0.8858 & \textbf{0.5072} & 0.6533 \\
+LightGBM      & default        & 0.50 & 0.7076 & 0.6471 & 0.1142 & 0.1941 & 0.6456 \\
+LightGBM      & tuned on train & 0.16 & 0.4854 & 0.3589 & 0.8500 & 0.5047 & 0.6456 \\
+CatBoost      & default        & 0.50 & 0.7079 & 0.6564 & 0.1111 & 0.1900 & 0.6387 \\
+CatBoost      & tuned on train & 0.21 & 0.4627 & 0.3448 & 0.8246 & 0.4863 & 0.6387 \\
+Random forest & default        & 0.50 & 0.6977 & 0.7714 & 0.0280 & 0.0541 & 0.6310 \\
+Random forest & tuned on train & 0.22 & 0.4595 & 0.3429 & 0.8210 & 0.4837 & 0.6310 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At the default cut point the admissible XGBoost model recovers only \SI{9.1}{\percent} of future
+breaches, and the random forest only \SI{2.8}{\percent}: under a base rate that has fallen by
+six points, a threshold calibrated for the past almost never fires. That is a threshold failure,
+and it is fully repairable, because tuning the cut point on a validation slice from the end of
+the training period recovers $F_1$ to \num{0.5072} at recall \num{0.8858} without touching the
+model. The ranking failure underneath it, \num{0.7859} to \num{0.6533} AUC, is not repairable by
+any threshold and is the real cost of time.
+
+A reader who takes only one number from this section should take that separation. Reporting the
+default-threshold $F_1$ of \num{0.1596} alone would suggest the model is useless on future data;
+reporting the tuned $F_1$ of \num{0.5072} alone would hide that a deployed model needs its
+operating point re-tuned as the process drifts. Both are true and neither is complete.
+
+We report both arms rather than choosing one. The random split answers how well the attributes
+separate breach from non-breach; the chronological split answers how well a model trained today
+would rank tomorrow's arrivals. They are different questions and the gap between them,
+\num{0.1326} AUC, is itself the finding.
+
+\subsection{Attribution}
+\label{sec:shap}
+
+Figure~\ref{fig:shap} gives mean absolute SHAP values \citep{lundberg2017unified} for the
+admissible model, computed on a sample of \num{2000} held-out incidents.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{fig17_shap_importance.pdf}
+\caption{Mean absolute SHAP attribution, admissible XGBoost. Alert status contributes exactly
+zero and is retained in the table for completeness, because an attribute that survives the
+admissibility rules and then turns out to be uninformative is a different finding from one that
+was excluded.}
+\label{fig:shap}
+\end{figure}
+
+The admissible group breach-rate encoding is the strongest single contributor at \num{0.4366},
+followed by the service component at \num{0.2859} and the assignment delay at \num{0.1962}. The
+ordering is consistent with the feature ladder: the encodings add little \emph{marginal} AUC at
+rung 5 because the configuration-item attributes at rung 4 already carry much of the same
+information, but conditional on being present they carry the largest per-case attribution.
+Marginal contribution and attribution answer different questions and it is worth saying so
+explicitly, because a reader who expects them to agree will read one of the two tables as an
+error.
+
+Two attributions deserve comment. \texttt{Alert\_Status} contributes exactly \num{0.0}, which
+is consistent with the field being uniformly \texttt{closed} across almost the whole log; it
+passes the admissibility rules and is simply uninformative. And \texttt{Assignment\_Delay} ranks
+third despite the corruption in its upper tail documented in the Limitations, which suggests the
+signal it carries is concentrated in the well-formed short-delay range.
+
+Attribution is reported and is not validated against human decisions. SHAP has known
+impossibility results \citep{bilodeau2024impossibility} and sensitivity to feature
+representation \citep{hwang2025shapbased}, and whether explanations improve human decisions is
+unsettled \citep{haag2026explanations,chae2025explanation}. No claim is made here that these
+attributions improve operator performance; they are reported as a description of the model, not
+as an intervention.

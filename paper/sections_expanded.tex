@@ -155,6 +155,55 @@ research does not survive controlled comparison. That argument is directly relev
 result we report in Section~\ref{sec:assignment-results}, and it is one reason we report the
 ablation rather than only the aggregate.
 
+\subsection{Positioning against the closest prior work}
+\label{sec:positioning}
+
+Table~\ref{tab:related} places this study against the work nearest to it on each of its three
+axes: leakage measurement, service level prediction on operational logs, and multi-objective
+assignment.
+
+A word on what the table deliberately does not contain. It carries a reported-performance column
+only where a figure is comparable to ours, and marks the rest as not comparable rather than
+printing a number that would invite a false ranking. Accuracy figures across different logs,
+different labels and different decision points are not on a common scale, and assembling them
+into a league table is the specific practice that produced the leakage literature this paper
+builds on. \textbf{BPI Challenge 2014 is not in the \citet{teinemaa2019outcome} dataset list},
+verified against that paper itself, so there is no published same-task baseline on this log and
+the ranges reported in those benchmarks are used here as context and never as a head-to-head
+comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{This study against the closest prior work. A dash in the performance column means the
+figure exists in the cited work but is not on a scale comparable with ours, because the task,
+the log or the decision point differs.}
+\label{tab:related}
+\small
+\begin{tabular}{L{3.15cm} L{3.0cm} L{2.35cm} L{2.1cm} L{3.35cm}}
+\toprule
+Study & Approach & Data & Reported & Limitation for this question \\
+\midrule
+\citet{kaufman2012leakage} & Formalises leakage and the learn-predict separation & Several & --- & States the condition; does not measure what enforcing it costs \\
+\citet{kapoor2023leakage} & Eight-type leakage taxonomy across 17 fields & 294 papers & --- & Survey of consequences, not a measurement on one log \\
+\citet{abb2024discussion} & Measures example leakage in process mining & Standard BPIC logs & $>\SI{80}{\percent}$ example leakage & Measures the split axis; does not price the feature axis \\
+\citet{mishra2026taxonomy} & Removes leaky features from build prediction & CI build logs & $-15.07$ accuracy points & Different domain; no benefit side reported \\
+\citet{weytjens2022creating} & Leak-free benchmark construction & Process logs & --- & Prescribes the constraint rather than costing it \\
+\citet{teinemaa2019outcome} & Outcome-prediction benchmark & 24 event logs & --- & BPI 2014 not among the datasets \\
+\citet{dees2014predictive} & Workload impact analysis on this log & BPI 2014 & --- & Descriptive; no decision-time constraint \\
+\citet{gouryraj2021service} & Service level breach prediction & ITSM tickets & --- & No admissibility constraint stated \\
+\citet{arain2026novel} & Multi-objective ticket assignment & ITSM & --- & No leakage control on the objective models \\
+\citet{debjain2014evolutionary} & NSGA-III for many-objective problems & Benchmarks & --- & Not applied to assignment under admissibility \\
+\midrule
+\textbf{This work, unconstrained} & Reproduction of the default practice & BPI 2014, \num{31236} & 0.8814 AUC & Reported only to size the correction \\
+\textbf{This work, admissible} & Rules 1 and 2 enforced & BPI 2014, \num{31236} & \textbf{0.7859} AUC & The deployable figure \\
+\textbf{This work, chronological} & Admissible, evaluated forward in time & BPI 2014, \num{31236} & 0.6533 AUC & The figure under drift \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+What is missing from every row above is a measurement, on one log under one protocol, of both
+what the discipline costs and what it buys, reported together. That is the gap this paper fills.
+
 \subsection{Aggregation, weighting and calibration}
 
 The weighted power mean is a compensative connective in the sense of

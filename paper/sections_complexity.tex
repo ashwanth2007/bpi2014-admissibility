@@ -28,7 +28,7 @@ measured per-solve time from an instrumented run of 160 solves, 20 per variant, 
 generations and population 60 on CPU with no GPU. Timing is captured at the point the search
 executes rather than derived from log timestamps.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Measured wall time per solve. 20 solves per variant, 150 generations, population 60,
 single CPU. Percentages are relative to standard NSGA-II.}
@@ -48,6 +48,15 @@ NSGA-III & 5.07 & 0.58 & $+13.2\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{fig09_runtime.pdf}
+\caption{Measured wall time per solve, 20 solves per variant, single CPU. Every evolutionary
+variant lies within \SI{14}{\percent} of standard NSGA-II, so on this problem the choice
+between them is not a cost decision.}
+\label{fig:runtime}
+\end{figure}
 
 Three observations follow.
 

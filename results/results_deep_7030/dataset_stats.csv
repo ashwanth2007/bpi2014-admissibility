@@ -1,0 +1,22 @@
+Property,Value
+Raw incident records,31238
+Raw activity events,210837
+Raw interaction records,68358
+Incidents with a resolvable handle time and priority,31236
+Incidents in the modelling matrix,31236
+Distinct first-assignment groups,117
+Distinct configuration-item subtypes,58
+Distinct configuration-item types,13
+Distinct service components (WBS),259
+Admissible attributes,17
+Breach cases (positive class),11444
+Non-breach cases (negative class),19792
+Positive class rate,0.3664
+Training rows (random split),21865
+Test rows (random split),9371
+Training rows (chronological),24988
+Test rows (chronological),6248
+Test size fraction,0.3
+Earliest incident open time,2012-01-10 10:49:49
+Latest incident open time,2014-12-01 08:26:02
+Observation window (days),1055
