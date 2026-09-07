@@ -357,6 +357,73 @@ property of the test at $n=5$, not evidence of a small effect, and it is why the
 comparisons in Section~\ref{sec:full-comparison} are made with 2000-resample bootstrap
 intervals on the test set instead.
 
+\subsection{Does tuning close the gap to 0.80?}
+\label{sec:tuning}
+
+Every result above holds the learner fixed, because the learner is a control variable in a
+study whose object is a feature constraint. That leaves an obvious question unanswered: is
+\num{0.7859} the ceiling of the admissible feature set, or merely the ceiling of an untuned
+configuration? Table~\ref{tab:tuning} answers it with a randomised hyperparameter search and
+four ensembles under the same \num{70}/\num{30} protocol, with every gain tested by paired
+bootstrap on the same test set.
+
+\begin{table}[htbp]
+\centering
+\caption{Tuning and ensembling on the admissible feature set, \num{70}/\num{30}. The final two
+columns give the paired bootstrap difference against the same model untuned, and whether its
+\SI{95}{\percent} interval excludes zero. Nothing here changes the comparisons in
+Section~\ref{sec:cost}, which hold the learner fixed by design.}
+\label{tab:tuning}
+\small
+\begin{tabular}{lrrrrrrrc}
+\toprule
+Model & AUC & Acc. & Prec. & Rec. & $F_1$ & Brier & $\Delta$ AUC & Sig. \\
+\midrule
+XGBoost, untuned       & 0.7859 & 0.7213 & 0.6074 & 0.6761 & 0.6399 & 0.1861 & --- & --- \\
+LightGBM, untuned      & 0.7825 & 0.7166 & 0.6020 & 0.6679 & 0.6333 & 0.1881 & --- & --- \\
+CatBoost, untuned      & 0.7701 & 0.7015 & 0.5818 & 0.6589 & 0.6179 & 0.1939 & --- & --- \\
+Random forest, untuned & 0.7727 & 0.7185 & 0.6155 & 0.6170 & 0.6162 & 0.1900 & --- & --- \\
+\midrule
+XGBoost, tuned         & \textbf{0.7907} & 0.7291 & 0.6183 & 0.6805 & \textbf{0.6479} & 0.1830 & $+0.0048$ & yes \\
+LightGBM, tuned        & 0.7865 & 0.7232 & 0.6089 & 0.6834 & 0.6440 & 0.1858 & $+0.0005$ & no \\
+Soft vote, 3 models    & 0.7876 & 0.7213 & 0.6076 & 0.6752 & 0.6396 & 0.1856 & $+0.0016$ & yes \\
+Soft vote, 4 models    & 0.7863 & 0.7208 & 0.6093 & 0.6633 & 0.6351 & 0.1857 & $+0.0004$ & no \\
+Stacking, logistic meta& 0.7904 & \textbf{0.7367} & \textbf{0.6679} & 0.5596 & 0.6090 & \textbf{0.1759} & $+0.0044$ & yes \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Significant means the \SI{95}{\percent} paired bootstrap interval on the
+difference against the same model untuned excludes zero.}
+\end{table}
+
+The answer is no, and the size of the failure is the useful part. The best tuned single model
+reaches \num{0.7907} and the best ensemble \num{0.7904}. Both gains are real, with intervals
+$[\num{0.0027}, \num{0.0068}]$ and $[\num{0.0027}, \num{0.0061}]$ that exclude zero, and both
+are worth about \num{0.005} AUC. That is one twentieth of the \num{0.0955} the admissibility
+constraint costs. Tuning cannot buy back what the constraint removes, and it was never going to:
+the learning curve in Section~\ref{sec:learning} already showed the ceiling is information
+rather than model capacity, and this is the same conclusion reached from the other direction.
+
+Two learners gain nothing. LightGBM tuned improves by \num{0.0005} and the four-model soft vote
+by \num{0.0004}, neither distinguishable from zero. An ensemble of models that all see the same
+17 attributes and all fit them with axis-aligned splits has little disagreement left to average
+away, which is the ordinary reason ensembling stops helping.
+
+The stacking row is the one to read carefully, because it is the row a reader chasing a single
+headline number would quote. It has the best accuracy at \num{0.7367}, the best precision at
+\num{0.6679} and the best Brier score at \num{0.1759}, and the worst recall of any admissible
+model at \num{0.5596}. It buys those three by predicting the majority class more often. On a
+service desk that is the wrong trade: the cost of a missed breach is an escalation that did not
+happen, and the cost of a false alarm is a few minutes of attention. Accuracy is the metric that
+rewards this behaviour and it is exactly why Table~\ref{tab:full} does not lead with it.
+
+We keep \num{0.7859} as the figure quoted throughout the rest of the paper. It is the untuned
+model under the same fixed configuration used for every other arm, so it is the number that
+makes the comparison between configurations a comparison of the constraint rather than of
+tuning effort. \num{0.7907} is what the admissible feature set yields when the learner is
+allowed to be optimised, and both are reported so neither has to be inferred.
+
 \subsection{The operating point}
 \label{sec:threshold}
 

@@ -19,10 +19,16 @@ from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 
+import os
 SEED = 42; SMOOTH = 20
 np.random.seed(SEED)
+# Split fraction and run tag are configurable so this arm can be run under the same
+# 70/30 protocol as the rest of the paper rather than only at the original 80/20.
+TEST_SIZE = float(os.environ.get("BPI_TEST_SIZE", "0.2"))
+RUN_TAG = os.environ.get("BPI_RUN_TAG", "")
 D = Path(__file__).parent / "bpi2014"
-OUT = Path(__file__).parent / "results_bpi_leakfree"; OUT.mkdir(exist_ok=True)
+OUT = Path(__file__).parent / ("results_bpi_leakfree" + (("_" + RUN_TAG) if RUN_TAG else ""))
+OUT.mkdir(exist_ok=True)
 
 inc = pd.read_csv(D/"Detail_Incident.csv", sep=";", encoding="latin1")
 act = pd.read_csv(D/"Detail_Incident_Activity.csv", sep=";", encoding="latin1")
@@ -63,7 +69,7 @@ BASE=["Priority","Impact","Urgency","Open_Hour","Open_DayOfWeek","Is_Weekend","I
 d = df[BASE+["SLA_Breached","First_Assignment_Group"]].dropna(subset=BASE+["SLA_Breached"]).copy()
 d["First_Assignment_Group"]=d["First_Assignment_Group"].fillna("unknown").astype(str)
 y=d["SLA_Breached"]; g=d["First_Assignment_Group"]
-tr,te = train_test_split(d.index, test_size=0.2, stratify=y, random_state=SEED)
+tr,te = train_test_split(d.index, test_size=TEST_SIZE, stratify=y, random_state=SEED)
 
 def enc_fit(gg,yy):
     st=pd.DataFrame({"g":gg.values,"y":yy.values}).groupby("g")["y"].agg(["mean","count"])

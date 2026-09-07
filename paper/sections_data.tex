@@ -162,9 +162,12 @@ evaluated for case $i$ may use only cases resolved strictly before case $i$ open
 \hat{\theta}_g(i) \;=\;
 \frac{\sum_{j \in \mathcal{P}(i,g)} y_j \;+\; \alpha \bar{y}_{\mathcal{P}}}
      {\lvert \mathcal{P}(i,g) \rvert \;+\; \alpha},
-\qquad
-\mathcal{P}(i,g) = \{\, j : g_j = g,\; t^{\mathrm{res}}_j < t^{\mathrm{open}}_i \,\},
 \label{eq:rule2}
+\end{equation}
+where the admissible past set is
+\begin{equation}
+\mathcal{P}(i,g) = \bigl\{\, j : g_j = g,\; t^{\mathrm{res}}_j < t^{\mathrm{open}}_i \,\bigr\},
+\label{eq:pastset}
 \end{equation}
 with smoothing prior $\alpha = 20$ and $\bar{y}_{\mathcal{P}}$ the prior breach rate over the
 same past set. Operationally this means the encoding is refitted inside every cross-validation

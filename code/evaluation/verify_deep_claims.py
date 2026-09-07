@@ -326,6 +326,44 @@ def main() -> int:
     chk("shap assignment delay", 0.1962, float(sh["Assignment_Delay_Hours"]), tol=0.0006)
     chk("shap alert status is zero", 0.0, float(sh["Alert_Status_Encoded"]))
 
+    # ------------------------------------------------- Table: tuning and ensembling
+    tu = csv("results_bpi_leakfree_7030", "model_b_tuned_ensemble.csv").set_index("Model")
+    for name, auc, acc, prec, rec, f1, brier in [
+            ("XGBoost_untuned", 0.7859, 0.7213, 0.6074, 0.6761, 0.6399, 0.1861),
+            ("LightGBM_untuned", 0.7825, 0.7166, 0.6020, 0.6679, 0.6333, 0.1881),
+            ("CatBoost_untuned", 0.7701, 0.7015, 0.5818, 0.6589, 0.6179, 0.1939),
+            ("RandomForest_untuned", 0.7727, 0.7185, 0.6155, 0.6170, 0.6162, 0.1900),
+            ("XGBoost_tuned", 0.7907, 0.7291, 0.6183, 0.6805, 0.6479, 0.1830),
+            ("LightGBM_tuned", 0.7865, 0.7232, 0.6089, 0.6834, 0.6440, 0.1858),
+            ("SoftVote(XGBt,LGBMt,CatBoost)", 0.7876, 0.7213, 0.6076, 0.6752, 0.6396, 0.1856),
+            ("SoftVote(4 models)", 0.7863, 0.7208, 0.6093, 0.6633, 0.6351, 0.1857),
+            ("Stacking(LR meta)", 0.7904, 0.7367, 0.6679, 0.5596, 0.6090, 0.1759)]:
+        r = tu.loc[name]
+        chk("tuning %s AUC" % name, auc, float(r["Test_AUC"]))
+        chk("tuning %s accuracy" % name, acc, float(r["Accuracy"]))
+        chk("tuning %s precision" % name, prec, float(r["Precision"]))
+        chk("tuning %s recall" % name, rec, float(r["Recall"]))
+        chk("tuning %s F1" % name, f1, float(r["F1"]))
+        chk("tuning %s Brier" % name, brier, float(r["Brier"]))
+
+    sg = csv("results_bpi_leakfree_7030", "model_b_significance.csv").set_index("Model")
+    for name, delta, lo, hi, sig in [
+            ("XGBoost_tuned", 0.0048, 0.0027, 0.0068, True),
+            ("LightGBM_tuned", 0.0005, -0.0017, 0.0028, False),
+            ("SoftVote_3", 0.0016, 0.0001, 0.0032, True),
+            ("SoftVote_4", 0.0004, -0.0014, 0.0021, False),
+            ("Stacking", 0.0044, 0.0027, 0.0061, True)]:
+        r = sg.loc[name]
+        chk("tuning sig %s delta" % name, delta, float(r["Diff_vs_untuned"]))
+        chk("tuning sig %s CI low" % name, lo, float(r["CI_low"]))
+        chk("tuning sig %s CI high" % name, hi, float(r["CI_high"]))
+        CHECKS.append(("PASS" if bool(r["Significant"]) == sig else "FAIL",
+                       "tuning sig %s significant" % name, sig, bool(r["Significant"])))
+        if bool(r["Significant"]) != sig:
+            globals()["FAILS"] = FAILS + 1
+    chk("tuning best gain vs admissibility cost ratio", 20.0,
+        0.0955 / float(sg.loc["XGBoost_tuned", "Diff_vs_untuned"]), tol=0.6)
+
     # ------------------------------------------------- report
     width = max(len(c[1]) for c in CHECKS)
     for status, label, claimed, actual in CHECKS:

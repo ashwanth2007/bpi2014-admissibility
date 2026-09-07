@@ -75,20 +75,26 @@ The reported quantities are
 \begin{align}
 \mathrm{Precision} &= \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}},
 &\mathrm{Recall} &= \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}},
-&\mathrm{Specificity} &= \frac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FP}},
 \label{eq:prec}\\[2pt]
-F_1 &= \frac{2\,\mathrm{TP}}{2\,\mathrm{TP}+\mathrm{FP}+\mathrm{FN}},
-&\mathrm{BA} &= \tfrac{1}{2}\left(\mathrm{Recall}+\mathrm{Specificity}\right),
+\mathrm{Specificity} &= \frac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FP}},
+&F_1 &= \frac{2\,\mathrm{TP}}{2\,\mathrm{TP}+\mathrm{FP}+\mathrm{FN}},
 \label{eq:f1}
 \end{align}
-together with the Matthews correlation coefficient, which is the only one of these that
+and balanced accuracy
+$\mathrm{BA} = \tfrac{1}{2}(\mathrm{Recall}+\mathrm{Specificity})$.
+We also report the Matthews correlation coefficient, which is the only one of these that
 degrades under \emph{both} kinds of error on \emph{both} classes and is therefore the
 single most informative scalar on an imbalanced problem \citep{chicco2020advantages}:
 \begin{equation}
-\mathrm{MCC} = \frac{\mathrm{TP}\cdot\mathrm{TN} - \mathrm{FP}\cdot\mathrm{FN}}
-{\sqrt{(\mathrm{TP}+\mathrm{FP})(\mathrm{TP}+\mathrm{FN})(\mathrm{TN}+\mathrm{FP})(\mathrm{TN}+\mathrm{FN})}} .
+\mathrm{MCC} = \frac{\mathrm{TP}\cdot\mathrm{TN} - \mathrm{FP}\cdot\mathrm{FN}}{\sqrt{D}},
 \label{eq:mcc}
 \end{equation}
+where the normalising denominator is
+\begin{multline}
+D = (\mathrm{TP}+\mathrm{FP})(\mathrm{TP}+\mathrm{FN})\\
+\times(\mathrm{TN}+\mathrm{FP})(\mathrm{TN}+\mathrm{FN}).
+\label{eq:mccD}
+\end{multline}
 
 Threshold-free ranking quality is ROC-AUC, and because the positive class is a
 \SI{36.6}{\percent} minority we also report average precision, the area under the
@@ -231,12 +237,13 @@ h(t \mid \mathbf{x}) \;=\; P\bigl(t^{\mathrm{res}} \in b_t \;\big|\; t^{\mathrm{
 \end{equation}
 directly, which is the discrete-time survival formulation of \citet{suresh2022survival}.
 Survival follows by the product rule and breach risk is the conditional survival ratio:
-\begin{equation}
-S(t \mid \mathbf{x}) = \prod_{u \le t} \bigl(1 - h(u \mid \mathbf{x})\bigr),
-\qquad
-P\bigl(\text{breach} \mid \text{alive at } t, \mathbf{x}\bigr) = \frac{S(\tau \mid \mathbf{x})}{S(t \mid \mathbf{x})},
+\begin{align}
+S(t \mid \mathbf{x}) &= \prod_{u \le t} \bigl(1 - h(u \mid \mathbf{x})\bigr),
+\label{eq:surv}\\[2pt]
+P\bigl(\text{breach} \mid \text{alive at } t, \mathbf{x}\bigr)
+  &= \frac{S(\tau \mid \mathbf{x})}{S(t \mid \mathbf{x})},
 \label{eq:survival}
-\end{equation}
+\end{align}
 where $\tau$ is the case's own service level threshold from Equation~\ref{eq:label}. Monotonicity
 of $S$ is asserted as a test rather than assumed, and the test passes.
 
@@ -251,26 +258,29 @@ axis.
 
 A batch of $n$ incidents must be assigned across $m$ eligible groups. The formulation is
 \begin{align}
-\text{maximise} \quad & f_1(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, \hat{p}^{\mathrm{ftr}}_{ij}
-&& \text{(first-time-right resolution)} \label{eq:f1obj}\\
-\text{minimise} \quad & f_2(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, \hat{p}^{\mathrm{breach}}_{ij}
-&& \text{(service level breach)} \label{eq:f2obj}\\
-\text{minimise} \quad & f_3(\mathbf{z}) = \operatorname{sd}\bigl(\ell_1,\dots,\ell_m\bigr),
-\quad \ell_j = \textstyle\sum_i z_{ij}
-&& \text{(workload imbalance)} \label{eq:f3obj}\\
-\text{maximise} \quad & f_4(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, s_3(i,j)
-&& \text{(expertise match)} \label{eq:f4obj}\\
-\text{minimise} \quad & f_5(\mathbf{z}) = \tfrac{1}{n}\sum_{i}\sum_{j} z_{ij}\, \hat{d}_{ij}
-&& \text{(expected delay before first touch)} \label{eq:f5obj}
+\max\; & f_1(\mathbf{z}) = \tfrac{1}{n}\textstyle\sum_{i,j} z_{ij}\, \hat{p}^{\mathrm{ftr}}_{ij}
+  \label{eq:f1obj}\\
+\min\; & f_2(\mathbf{z}) = \tfrac{1}{n}\textstyle\sum_{i,j} z_{ij}\, \hat{p}^{\mathrm{breach}}_{ij}
+  \label{eq:f2obj}\\
+\min\; & f_3(\mathbf{z}) = \operatorname{sd}\bigl(\ell_1,\dots,\ell_m\bigr),
+  \;\; \ell_j = \textstyle\sum_i z_{ij} \label{eq:f3obj}\\
+\max\; & f_4(\mathbf{z}) = \tfrac{1}{n}\textstyle\sum_{i,j} z_{ij}\, s_3(i,j)
+  \label{eq:f4obj}\\
+\min\; & f_5(\mathbf{z}) = \tfrac{1}{n}\textstyle\sum_{i,j} z_{ij}\, \hat{d}_{ij}
+  \label{eq:f5obj}
 \end{align}
-subject to
+where $f_1$ is expected first-time-right resolution, $f_2$ expected service level breach, $f_3$
+workload imbalance, $f_4$ expertise match and $f_5$ expected delay before first touch. The
+formulation is subject to
 \begin{align}
-\text{C1:}\quad & \sum_{j} z_{ij} = 1 && \forall i \quad\text{(each incident assigned exactly once)}\\
-\text{C2:}\quad & \sum_{i} z_{ij} \le \kappa_j && \forall j \quad\text{(group capacity)}\\
-\text{C3:}\quad & z_{ij} \le a_j && \forall i,j \quad\text{(group availability)}\\
-\text{C4:}\quad & z_{ij} \, s_3(i,j) \ge \eta \, z_{ij} && \forall i,j \quad\text{(minimum expertise eligibility)}
+\text{C1:}\;\; & \textstyle\sum_{j} z_{ij} = 1 && \forall i \label{eq:c1}\\
+\text{C2:}\;\; & \textstyle\sum_{i} z_{ij} \le \kappa_j && \forall j \label{eq:c2}\\
+\text{C3:}\;\; & z_{ij} \le a_j && \forall i,j \label{eq:c3}\\
+\text{C4:}\;\; & z_{ij} \, s_3(i,j) \ge \eta \, z_{ij} && \forall i,j \label{eq:c4}
 \end{align}
-with $z_{ij}\in\{0,1\}$. Constraint C2 is enforced by a bounded repair operator rather than by
+with $z_{ij}\in\{0,1\}$. C1 assigns each incident exactly once, C2 respects the capacity
+$\kappa_j$ of group $j$, C3 restricts assignment to available groups through the indicator
+$a_j$, and C4 imposes a minimum expertise eligibility $\eta$. Constraint C2 is enforced by a bounded repair operator rather than by
 penalty, so that no infeasible solution can enter the population; the operator is capped at six
 passes and its effect is verified by counting violations, which are zero across all
 \num{1225} runs.
