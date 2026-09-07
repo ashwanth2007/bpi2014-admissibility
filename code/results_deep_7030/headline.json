@@ -1,0 +1,44 @@
+{
+  "unconstrained_auc": 0.905,
+  "admissible_auc": 0.8258,
+  "chronological_auc": 0.8074,
+  "cost_auc": 0.07920000000000005,
+  "above_chance_auc": 0.405,
+  "share_of_signal_pct": 19.555555555555568,
+  "learner": "XGBoost",
+  "per_learner": {
+    "CatBoost": {
+      "unconstrained_auc": 0.8989,
+      "admissible_auc": 0.8166,
+      "chronological_auc": 0.8076,
+      "cost_auc": 0.08230000000000004,
+      "above_chance_auc": 0.39890000000000003,
+      "share_of_signal_pct": 20.63173727751317
+    },
+    "LightGBM": {
+      "unconstrained_auc": 0.9048,
+      "admissible_auc": 0.8239,
+      "chronological_auc": 0.8061,
+      "cost_auc": 0.08090000000000008,
+      "above_chance_auc": 0.40480000000000005,
+      "share_of_signal_pct": 19.985177865612666
+    },
+    "RandomForest": {
+      "unconstrained_auc": 0.8994,
+      "admissible_auc": 0.8212,
+      "chronological_auc": 0.8021,
+      "cost_auc": 0.07819999999999994,
+      "above_chance_auc": 0.3994,
+      "share_of_signal_pct": 19.579369053580354
+    },
+    "XGBoost": {
+      "unconstrained_auc": 0.905,
+      "admissible_auc": 0.8258,
+      "chronological_auc": 0.8074,
+      "cost_auc": 0.07920000000000005,
+      "above_chance_auc": 0.405,
+      "share_of_signal_pct": 19.555555555555568
+    }
+  },
+  "note": "share_of_signal_pct = (unconstrained - admissible) / (unconstrained - 0.5). This is the paper's headline share and the section heading that names it."
+}

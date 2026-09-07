@@ -1,0 +1,20 @@
+==============================================================================
+  MODEL A, conversion, UCI Bank Marketing
+==============================================================================
+  held-out AUC 0.8185  (published A3_tuned_no_duration: 0.8185)
+  adapter AUC  0.6885  (8 of 19 features live, the rest clamped to the training median)
+  fit in 1s
+==============================================================================
+  MODEL B, SLA breach, BPI Challenge 2014
+==============================================================================
+  held-out AUC 0.7927  (published XGBoost_tuned: 0.7927)
+  adapter AUC  0.7118  (12 of 17 features live)
+  adapter AUC  0.7097  (priority masked too, 9 features live)
+  fit in 1s
+  assignment groups in train: 114, median 29 cases, 42% below the k=20 smoothing threshold
+
+Wrote D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\serving\artifacts\registry.json
+
+  THE HONEST BRACKET, which is what goes in the paper:
+  model_a_conversion   full-feature 0.8185  ->  adapter 0.6885   (8 of 19 features live)
+  model_b_sla          full-feature 0.7927  ->  adapter 0.7097   (9 of 17 features live)

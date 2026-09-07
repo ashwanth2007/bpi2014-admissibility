@@ -1,0 +1,43 @@
+{
+  "hypervolume_p": 1.504722489470097e-19,
+  "hypervolume_mean_diff": 0.00666,
+  "proposed_beats_control_on_hypervolume": true,
+  "nsga3_hypervolume": 0.08242921376947762,
+  "proposed_hypervolume": 0.07617442270754396,
+  "nsga3_beats_proposed": true,
+  "nsga3_advantage_pct": 8.211143372819047,
+  "protocol": {
+    "runs_completed": 1225,
+    "capacity_violations": 0,
+    "batches": 5,
+    "repeats_per_batch": 30,
+    "policies": 13
+  },
+  "ablation": {
+    "priority-aware initialisation": {
+      "hypervolume_without": 0.06578781566128529,
+      "delta_vs_full": -0.01038660704625867,
+      "component_helps": true
+    },
+    "adaptive crossover": {
+      "hypervolume_without": 0.07666717226715049,
+      "delta_vs_full": 0.0004927495596065284,
+      "component_helps": false
+    },
+    "SLA-aware mutation": {
+      "hypervolume_without": 0.07674191877219365,
+      "delta_vs_full": 0.000567496064649689,
+      "component_helps": false
+    }
+  },
+  "exploratory_PAA-AdaptMut": {
+    "hypervolume": 0.07658691487290092,
+    "vs_proposed": 0.00041249216535696465,
+    "vs_nsga3": -0.0058422988965766975
+  },
+  "exploratory_NSGA3-PrioInit": {
+    "hypervolume": 0.08497291463725154,
+    "vs_proposed": 0.00879849192970758,
+    "vs_nsga3": 0.002543700867773918
+  }
+}

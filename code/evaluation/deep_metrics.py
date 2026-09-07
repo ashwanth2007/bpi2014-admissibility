@@ -26,7 +26,11 @@ Outputs, all under code/results_deep[_tag]/:
 
 Run:  BPI_TEST_SIZE=0.3 BPI_RUN_TAG=7030 python evaluation/deep_metrics.py
 """
+
 from __future__ import annotations
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import _openmp_first  # noqa: F401  MUST precede sklearn/xgboost/catboost, see module docstring
 
 import json
 import os
@@ -86,6 +90,41 @@ def score_block(y, proba, pred):
     }
 
 
+def _write_headline(out_dir):
+    """The cost of admissibility and the share of above-chance signal it represents.
+
+    Both are ratios of numbers that do have artifacts, which is exactly why neither had one:
+    a derived quantity is nobody's output. The share was quoted in the abstract, in a section
+    heading, in the methods conventions and in three places in the discussion, and when the
+    dataset changed it moved in the tables and stayed put in all five sentences.
+
+    Per learner, plus the XGBoost row the paper quotes as the headline.
+    """
+    src = (HERE.parent / ("results_bpi_leakfree" + (("_" + RUN_TAG) if RUN_TAG else ""))
+           / "model_comparison_leakfree.csv")
+    if not src.exists():
+        print("  [warn] no model_comparison_leakfree.csv; headline.json NOT written")
+        return
+    m = pd.read_csv(src)
+    per = {}
+    for mdl in sorted(m.Model.unique()):
+        x = m[m.Model == mdl].set_index("Config")["Test_AUC"]
+        con, adm = float(x["contaminated_v1"]), float(x["leakfree"])
+        per[mdl] = {"unconstrained_auc": con, "admissible_auc": adm,
+                    "chronological_auc": float(x["leakfree_temporal"]),
+                    "cost_auc": con - adm,
+                    "above_chance_auc": con - 0.5,
+                    "share_of_signal_pct": 100.0 * (con - adm) / (con - 0.5)}
+    head = dict(per["XGBoost"])
+    head["learner"] = "XGBoost"
+    head["per_learner"] = per
+    head["note"] = ("share_of_signal_pct = (unconstrained - admissible) / (unconstrained - 0.5). "
+                    "This is the paper's headline share and the section heading that names it.")
+    (out_dir / "headline.json").write_text(json.dumps(head, indent=2), encoding="utf-8")
+    print("  headline: cost %.4f AUC, %.1f%% of above-chance signal"
+          % (head["cost_auc"], head["share_of_signal_pct"]))
+
+
 def main():
     t0 = time.time()
     b = B.build()
@@ -124,8 +163,31 @@ def main():
         ("Latest incident open time", str(open_times.max())),
         ("Observation window (days)", int((open_times.max() - open_times.min()).days)),
     ]
+    # The paper's opening paragraph rests on these three numbers and nothing computed them.
+    # They were measured once, by hand, on the truncated and mis-parsed copy of the log, and
+    # then carried through every draft. The first sentence of a paper about numbers nobody
+    # re-derived should not be a number nobody re-derived.
+    _re = pd.to_numeric(df["# Reassignments"], errors="coerce")
+    _ht = pd.to_numeric(df["Handle_Time_Hours"], errors="coerce")
+    _ok = _re.notna() & _ht.notna()
+    _med_re = float(_ht[_ok & (_re >= 1)].median())
+    _med_no = float(_ht[_ok & (_re == 0)].median())
+    stats_rows += [
+        ("Incidents reassigned at least once", int((_ok & (_re >= 1)).sum())),
+        ("Reassigned fraction", round(float((_re[_ok] >= 1).mean()), 6)),
+        ("Median handle hours, reassigned", round(_med_re, 4)),
+        ("Median handle hours, not reassigned", round(_med_no, 4)),
+        ("Reassignment handle-time ratio", round(_med_re / _med_no, 4)),
+    ]
+
     pd.DataFrame(stats_rows, columns=["Property", "Value"]).to_csv(
         OUT / "dataset_stats.csv", index=False)
+
+    # The headline itself. "A fifth of the signal was not there" is the sentence the paper is
+    # remembered by, and the share behind it was the one number in the study that no artifact
+    # produced: it is a ratio of two AUCs and lived only in the prose and in a table cell that
+    # recomputed it. Written here so it can be checked like everything else.
+    _write_headline(OUT)
 
     pri = (df.groupby("Priority")
              .agg(n=("SLA_Breached", "size"),

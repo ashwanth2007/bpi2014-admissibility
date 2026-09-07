@@ -1,0 +1,75 @@
+{
+  "verify_paper_claims.py": {
+    "total": 49,
+    "mismatched": [
+      {
+        "status": "FAIL",
+        "label": "hypervolume PAA-NSGA-II",
+        "claimed": "0.0779",
+        "actual": "0.07617442270754396"
+      },
+      {
+        "status": "FAIL",
+        "label": "hypervolume NSGA3",
+        "claimed": "0.0837",
+        "actual": "0.08242921376947762"
+      },
+      {
+        "status": "FAIL",
+        "label": "hypervolume NSGA3-PrioInit",
+        "claimed": "0.0862",
+        "actual": "0.08497291463725154"
+      },
+      {
+        "status": "FAIL",
+        "label": "hypervolume PAA-noPriority",
+        "claimed": "0.0663",
+        "actual": "0.06578781566128529"
+      },
+      {
+        "status": "FAIL",
+        "label": "ablation priority init",
+        "claimed": "-0.0116",
+        "actual": "-0.01038660704625867"
+      },
+      {
+        "status": "FAIL",
+        "label": "hypervolume mean diff",
+        "claimed": "0.00841",
+        "actual": "0.00666"
+      },
+      {
+        "status": "FAIL",
+        "label": "runtime StandardNSGA2",
+        "claimed": "2.04",
+        "actual": "0.8862703200080432"
+      },
+      {
+        "status": "FAIL",
+        "label": "runtime PAA-NSGA-II",
+        "claimed": "2.19",
+        "actual": "0.958171359996777"
+      },
+      {
+        "status": "FAIL",
+        "label": "runtime NSGA3",
+        "claimed": "1.8",
+        "actual": "0.9942246249993332"
+      },
+      {
+        "status": "FAIL",
+        "label": "runtime NSGA3-PrioInit",
+        "claimed": "3.19",
+        "actual": "1.0128185850102454"
+      }
+    ],
+    "alignment": "all 49 claim sites line up with the reported checks",
+    "applied": 10,
+    "remaining": []
+  },
+  "verify_deep_claims.py": {
+    "total": 543,
+    "mismatched": [],
+    "alignment": "all 543 claim sites line up with the reported checks"
+  }
+}

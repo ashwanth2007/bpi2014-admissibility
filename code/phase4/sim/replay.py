@@ -34,6 +34,16 @@ import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass, field
 
+# BPI 2014 timestamp formats. BOTH files are day-first; the incident file uses "/" and the
+# activity file uses "-". This was previously parsed with format="mixed", dayfirst=False on the
+# incident file, which silently swapped day and month on the 41 per cent of rows where both
+# fields are <= 12. Verified from the raw bytes on 2026-09-07: across 46,606 non-blank Open Time
+# values, 27,994 have a first field > 12 and ZERO have a second field > 12, so month-first is
+# arithmetically impossible. Never use format="mixed" on an ambiguous numeric date.
+INCIDENT_TS_FORMAT = "%d/%m/%Y %H:%M:%S"
+ACTIVITY_TS_FORMAT = "%d-%m-%Y %H:%M:%S"
+
+
 DAY_NS = 86_400_000_000_000
 
 
@@ -66,14 +76,24 @@ class BPI2014Replay:
     def _load(self) -> None:
         d = self.data_dir
         inc = pd.read_csv(d / "Detail_Incident.csv", sep=";", encoding="latin1")
+
+        # 203 completely empty trailing rows in the published file carry a null Incident ID and
+        # collide as duplicate NaN keys under set_index. Real incidents: 46,606 of 46,809 raw rows.
+        inc = inc[inc["Incident ID"].notna()].copy()
+        # One row carries Urgency = "5 - Very Low" rather than "5", which makes the column object
+        # dtype and causes XGBoost to reject the matrix. Take the leading integer.
+        for _c in ["Priority", "Impact", "Urgency"]:
+            if _c in inc.columns:
+                inc[_c] = pd.to_numeric(
+                    inc[_c].astype(str).str.extract(r"^\s*(\d+)", expand=False), errors="coerce"
+                ) if inc[_c].dtype == object else pd.to_numeric(inc[_c], errors="coerce")
         act = pd.read_csv(d / "Detail_Incident_Activity.csv", sep=";", encoding="latin1")
 
         inc["Handle_Time_Hours"] = pd.to_numeric(
             inc["Handle Time (Hours)"].astype(str).str.replace(",", "."), errors="coerce")
         for c in ["Open Time", "Resolved Time", "Close Time"]:
-            inc[c] = pd.to_datetime(inc[c], format="mixed", dayfirst=False, errors="coerce")
-        act["DateStamp"] = pd.to_datetime(act["DateStamp"], format="mixed",
-                                          dayfirst=True, errors="coerce")
+            inc[c] = pd.to_datetime(inc[c], format=INCIDENT_TS_FORMAT, errors="coerce")
+        act["DateStamp"] = pd.to_datetime(act["DateStamp"], format=ACTIVITY_TS_FORMAT, errors="coerce")
 
         # Same SLA label as Model B, so simulated outcomes are on the trained scale.
         pm = inc.groupby("Priority")["Handle_Time_Hours"].median()

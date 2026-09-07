@@ -1,0 +1,27 @@
+Feature,Justification,Known_at_assignment_time
+Priority,Impact x urgency as recorded on the incident at open. The SLA clock is set per priority band.,yes
+Impact,Business impact level recorded at open. Higher impact cases receive different handling paths.,yes
+Urgency,Urgency level recorded at open. Independent of impact and jointly determines priority.,yes
+Open_Hour,"Hour of arrival. Proxies shift staffing, which governs how fast a case is picked up.",yes
+Open_DayOfWeek,Weekday of arrival. Captures the weekly demand cycle in the service desk.,yes
+Is_Weekend,Weekend flag. Reduced staffing materially changes achievable response time.,yes
+Is_Business_Hours,In-hours vs out-of-hours arrival. Out-of-hours cases queue until staffed.,yes
+Open_Month,Month of arrival. Captures seasonal load and release-cycle effects.,yes
+Queue_Length_At_Open,"Count of incidents already open at arrival. Direct measure of congestion, computed from other cases only.",yes
+Assignment_Delay_Hours,Elapsed hours from open to first assignment. Observable at the assignment decision; distinct from total handle time.,yes
+CI_Type_Encoded,Configuration item type of the affected asset. Different asset classes have different repair profiles.,yes
+CI_Subtype_Encoded,Configuration item subtype. Finer-grained asset class than CI type.,yes
+WBS_Encoded,Service component work breakdown code of the affected service.,yes
+Category_Encoded,Incident category assigned at intake.,yes
+Alert_Status_Encoded,Alert state on the record at open.,yes
+Group_Breach_Rate_TE,"Smoothed historical breach rate of the first assignment group, fitted on training rows only with a prior weight of 20. This is the Group B representative-performance signal in the specification.","yes, fitted on past/training cases only"
+Group_Volume_TE,"Case volume handled by the first assignment group, fitted on training rows only. Proxies group capacity and experience.","yes, fitted on past/training cases only"
+# Reassignments,"EXCLUDED. Total reassignments over the whole closed case. Not knowable at assignment and rises with duration, which defines the label.",no
+Num_Groups_Touched,EXCLUDED. Distinct groups over the whole closed case. Post-hoc.,no
+Total_Activity_Events,EXCLUDED. Count of every activity event across the closed case. Strongest duration proxy in the feature set.,no
+Has_Reopen,EXCLUDED. Reopens occur late in a case. Post-hoc.,no
+Num_Related_Incidents,"EXCLUDED. Final tally on the closed record, not the value visible at open.",no
+Interaction_Count,EXCLUDED. Aggregated across the full case from the interaction log. Post-hoc.,no
+FCR_Rate,EXCLUDED. First-call-resolution outcome is known only after handling. Post-hoc.,no
+Group_Avg_Handle_Time,"EXCLUDED as used in v1. Mean of the quantity the label thresholds, computed over the full dataset before the split.",no
+Group_Breach_Rate (v1 form),EXCLUDED as used in v1. Mean of the target computed over the full dataset including test rows and the row's own label.,no

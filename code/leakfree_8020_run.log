@@ -1,0 +1,108 @@
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\bpi2014_pipeline_leakfree.py:133: DtypeWarning: Columns (7) have mixed types. Specify dtype option on import or set low_memory=False.
+  inc = pd.read_csv(DATA_DIR / "Detail_Incident.csv", sep=";", encoding="latin1")
+  File "D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\.venv\Lib\site-packages\joblib\externals\loky\backend\context.py", line 257, in _count_physical_cores
+    cpu_info = subprocess.run(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Loading BPI Challenge 2014 data...
+  Incidents:  46,606 rows
+  Activities: 466,737 rows
+
+Median handle time by priority:
+  Priority 1.0: 23.45 hours
+  Priority 2.0: 3.40 hours
+  Priority 3.0: 1.48 hours
+  Priority 4.0: 3.58 hours
+  Priority 5.0: 7.63 hours
+
+After cleaning: 46,605 incidents
+SLA breach rate: 36.7%
+
+Engineering leak-free features...
+Rule 2 mode: exact   causal cache populated: True
+
+Modelling rows: 46,605   breach rate: 36.7%
+Random split   -> train 37,284 | test 9,321
+Temporal split -> train 37,284 | test 9,321  (test breach rate 31.6%)
+
+======================================================================================================================
+  CONTAMINATED CONFIGURATION (v1 behaviour, reported only to size the correction)
+======================================================================================================================
+  contaminated_v1        XGBoost       n=20  CV-AUC=0.9064  Test-AUC=0.9099  F1=0.7832  P=0.7362  R=0.8364
+  contaminated_v1        LightGBM      n=20  CV-AUC=0.9056  Test-AUC=0.9085  F1=0.7832  P=0.7337  R=0.8400
+  contaminated_v1        CatBoost      n=20  CV-AUC=0.8999  Test-AUC=0.9033  F1=0.7762  P=0.7254  R=0.8347
+  contaminated_v1        RandomForest  n=20  CV-AUC=0.8991  Test-AUC=0.9036  F1=0.7739  P=0.7314  R=0.8216
+
+======================================================================================================================
+  LEAK-FREE CONFIGURATION (all four models, random split)
+======================================================================================================================
+  leakfree               XGBoost       n=17  CV-AUC=0.8272  Test-AUC=0.8319  F1=0.6838  P=0.6329  R=0.7436
+  leakfree               LightGBM      n=17  CV-AUC=0.8249  Test-AUC=0.8287  F1=0.6808  P=0.6263  R=0.7456
+  leakfree               CatBoost      n=17  CV-AUC=0.8190  Test-AUC=0.8205  F1=0.6741  P=0.6110  R=0.7518
+  leakfree               RandomForest  n=17  CV-AUC=0.8218  Test-AUC=0.8258  F1=0.6752  P=0.6293  R=0.7284
+
+======================================================================================================================
+  LEAK-FREE, CHRONOLOGICAL HOLDOUT (train on earliest 80%, test on latest 20%)
+  Label uses TRAIN-PERIOD medians only, and the operating threshold is tuned on
+  a validation slice of train, because neither is knowable from the future.
+======================================================================================================================
+  Train-period medians: {1.0: 23.45, 2.0: 3.54, 3.0: 1.54, 4.0: 3.94, 5.0: 8.09}
+  Breach rate  train 36.7%  test 30.1%
+  leakfree_temporal      XGBoost       cut=0.38  Test-AUC=0.8074  F1=0.6157  P=0.4965  R=0.8101
+  leakfree_temporal      LightGBM      cut=0.35  Test-AUC=0.8061  F1=0.6190  P=0.4908  R=0.8380
+  leakfree_temporal      CatBoost      cut=0.46  Test-AUC=0.8076  F1=0.6202  P=0.5264  R=0.7548
+  leakfree_temporal      RandomForest  cut=0.41  Test-AUC=0.8021  F1=0.6233  P=0.5189  R=0.7805
+
+======================================================================================================================
+  FEATURE LADDER, admissible information only (XGBoost)
+======================================================================================================================
+  3_static_only          XGBoost       n= 3  CV-AUC=0.5122  Test-AUC=0.5162  F1=0.3826  P=0.3809  R=0.3843
+  8_plus_temporal        XGBoost       n= 8  CV-AUC=0.5690  Test-AUC=0.5722  F1=0.4465  P=0.4201  R=0.4763
+  10_plus_operational    XGBoost       n=10  CV-AUC=0.7243  Test-AUC=0.7275  F1=0.5778  P=0.5307  R=0.6341
+  15_plus_config         XGBoost       n=15  CV-AUC=0.8177  Test-AUC=0.8196  F1=0.6781  P=0.6161  R=0.7538
+  17_plus_group_TE       XGBoost       n=17  CV-AUC=0.8272  Test-AUC=0.8319  F1=0.6838  P=0.6329  R=0.7436
+
+Best leak-free model: XGBoost
+
+              precision    recall  f1-score   support
+
+   No Breach       0.83      0.75      0.79      5897
+  SLA Breach       0.63      0.74      0.68      3424
+
+    accuracy                           0.75      9321
+   macro avg       0.73      0.75      0.74      9321
+weighted avg       0.76      0.75      0.75      9321
+
+
+Top 10 features by mean |SHAP| (LightGBM):
+               Feature  Mean_Abs_SHAP
+  Group_Breach_Rate_TE       0.637244
+Assignment_Delay_Hours       0.505396
+       Group_Volume_TE       0.179643
+           WBS_Encoded       0.158149
+              Priority       0.147554
+  Queue_Length_At_Open       0.126398
+       CI_Type_Encoded       0.102827
+    CI_Subtype_Encoded       0.093896
+            Open_Month       0.066640
+             Open_Hour       0.051913
+
+======================================================================================================================
+  SUMMARY
+======================================================================================================================
+  Contaminated (v1 style):        Test-AUC 0.9099
+  Leak-free, random split:        Test-AUC 0.8319
+  Leak-free, chronological split: Test-AUC 0.8076
+
+  Correction: 0.0780 AUC, 19.0% of all signal above chance was leakage.
+
+  Best leak-free model: XGBoost
+  Outputs written to: D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_bpi_leakfree
+======================================================================================================================

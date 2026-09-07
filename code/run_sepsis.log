@@ -1,0 +1,44 @@
+  File "D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\.venv\Lib\site-packages\joblib\externals\loky\backend\context.py", line 257, in _count_physical_cores
+    cpu_info = subprocess.run(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Sepsis Cases, hospital emergency care pathways: 1050 cases, 15214 events
+  cases with a decision point: 1050 of 1050
+  right-censoring guard [p95]: dropped 89 of 1050 (8.48%), threshold rule alone would drop 5
+  breach rate: 0.2966  strata: 136
+  admissible 33, contaminated 34, groups 5
+
+contaminated (36 features)
+  XGBoost       AUC 0.8153  F1 0.5802  Acc 0.7647
+  LightGBM      AUC 0.8226  F1 0.6182  Acc 0.7820
+  CatBoost      AUC 0.8240  F1 0.6082  Acc 0.7682
+  RandomForest  AUC 0.8299  F1 0.5325  Acc 0.7509
+
+admissible (33 features)
+  XGBoost       AUC 0.6046  F1 0.3678  Acc 0.6194
+  LightGBM      AUC 0.5982  F1 0.3351  Acc 0.5744
+  CatBoost      AUC 0.6130  F1 0.4216  Acc 0.6298
+  RandomForest  AUC 0.6033  F1 0.3121  Acc 0.6644
+
+chronological (33 features)
+  XGBoost       AUC 0.5781  F1 0.1786  Acc 0.7617
+  LightGBM      AUC 0.5601  F1 0.1754  Acc 0.7565
+  CatBoost      AUC 0.6067  F1 0.2623  Acc 0.7668
+  RandomForest  AUC 0.5984  F1 0.0000  Acc 0.7824
+
+==================================================================
+Config        admissible  chronological  contaminated    cost  share_of_signal_pct
+Model                                                                             
+CatBoost          0.6130         0.6067        0.8240  0.2110              65.1167
+LightGBM          0.5982         0.5601        0.8226  0.2244              69.5668
+RandomForest      0.6033         0.5984        0.8299  0.2267              68.6979
+XGBoost           0.6046         0.5781        0.8153  0.2107              66.8241
+
+written to results_sepsis/

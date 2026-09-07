@@ -7,6 +7,18 @@
 \section{Methods}
 \label{sec:methods}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{fig20_system_pipeline.pdf}
+\caption{The apparatus end to end. Five event logs enter one code path; the admissibility
+filter of Figure~\ref{fig:mechanism} splits each into an unconstrained arm and an admissible
+arm, and the gap between what the two arms score is the measurement. The four learners are
+held fixed across arms by design, so a difference between arms is a property of the
+constraint and not of the model. The scoring formulations and the assignment layer on the
+right run on BPI 2014 only, and are what an admissible model is then used for.}
+\label{fig:pipeline}
+\end{figure}
+
 \subsection{Notation}
 
 Write $i \in \mathcal{I}$ for an incident and $j \in \mathcal{G}$ for an assignment group, with
@@ -97,7 +109,7 @@ D = (\mathrm{TP}+\mathrm{FP})(\mathrm{TP}+\mathrm{FN})\\
 \end{multline}
 
 Threshold-free ranking quality is ROC-AUC, and because the positive class is a
-\SI{36.6}{\percent} minority we also report average precision, the area under the
+\SI{36.7}{\percent} minority we also report average precision, the area under the
 precision-recall curve, whose chance level is the class prevalence rather than \num{0.5}.
 Probability quality is the Brier score,
 $\mathrm{BS} = N^{-1}\sum_i (\hat{p}_i - y_i)^2$, reported because the scores feed a downstream
@@ -105,8 +117,8 @@ decision and a ranking that is correct but miscalibrated still produces the wron
 \citep{filho2023classifier,perezlebel2025decision}.
 
 Two conventions are used throughout. First, \emph{above-chance signal} means $\mathrm{AUC}-0.5$,
-so a drop from \num{0.8814} to \num{0.7859} is a loss of \num{0.0955} out of \num{0.3814}, which
-is \SI{25.0}{\percent}. Second, every interval reported is a percentile bootstrap interval over
+so a drop from \num{0.9050} to \num{0.8258} is a loss of \num{0.0792} out of \num{0.4050}, which
+is \SI{19.6}{\percent}. Second, every interval reported is a percentile bootstrap interval over
 2000 resamples of the test set, paired across configurations where a difference is quoted.
 
 \subsection{F1: the adaptive assignment score}
@@ -149,13 +161,15 @@ deviation is not and does not.
 \paragraph{$s_5$, freshness.} The probability of a favourable outcome decays with the delay
 before first touch. Fitting an exponential $\exp(-\lambda t)$ by maximum likelihood on the
 training period gives
-$\hat{\lambda} = \num{0.0191}\ \text{h}^{-1}$, \SI{95}{\percent} interval
-$[\num{0.0161}, \num{0.0226}]$, on $n = \num{7041}$ cases. That is a half-life of
-\num{36.3} hours.
+$\hat{\lambda} = \num{0.0174}\ \text{h}^{-1}$, \SI{95}{\percent} interval
+$[\num{0.0161}, \num{0.0188}]$, on $n = \num{31394}$ cases. That is a half-life of
+\num{39.9} hours. Cases whose recorded delay exceeds \num{168} hours are held out of this
+fit as a different operational regime, which is \num{171} of \num{39449} cases; the uncapped
+control fit is reported in Section~\ref{sec:formulation-results}.
 
 \paragraph{$s_6$, urgency.} A logistic ramp in time remaining against the service level target,
-$s_6 = \bigl(1 + \exp(k(\tau - \tau_0))\bigr)^{-1}$, with $\hat{k} = \num{0.0248}$ and
-$\hat{\tau}_0 = \num{-5.63}$ hours fitted on the same training period.
+$s_6 = \bigl(1 + \exp(k(\tau - \tau_0))\bigr)^{-1}$, with $\hat{k} = \num{0.0228}$ and
+$\hat{\tau}_0 = \num{-12.03}$ hours fitted on the same training period.
 
 \paragraph{$s_7$, importance.} A weighted geometric blend of normalised priority, impact and
 urgency,
@@ -188,7 +202,7 @@ or should not sink an assignment into a measured one.
 \paragraph{Degeneracy, and the floor it forces.} For $p \le 0$ the mean is undefined or
 identically zero whenever any criterion is exactly zero. Cosine expertise \emph{is} exactly
 zero for a group with no training history in the incident's category, and this occurs in
-\num{50102} of \num{158300} evaluation cells, which is \SI{31.65}{\percent}. An explicit floor
+\num{109012} of \num{348000} decision-matrix cells, which is \SI{31.3}{\percent}. An explicit floor
 of $\varepsilon = 10^{-3}$ is therefore applied before any $p \le 0$ aggregation. It is reported
 as a parameter of the method rather than buried as an implementation detail, because it changes
 the value of the score in a third of all cells.
@@ -229,8 +243,8 @@ about.
 The admissible object is the hazard of \emph{resolution}, which elapsed time does not determine.
 Each case contributes one row per elapsed-time bin it survives into, over the ten bins with
 edges at $0, 1, 2, 4, 8, 16, 24, 48, 96, 168$ hours and an open final bin. The expansion turns
-\num{15828} cases into \num{69867} person-period rows, a factor of \num{4.41}, with a per-bin
-resolution rate of \num{0.2260}. A gradient-boosted classifier estimates the discrete hazard
+\num{39449} cases into \num{161720} person-period rows, a factor of \num{4.10}, with a per-bin
+resolution rate of \num{0.2430}. A gradient-boosted classifier estimates the discrete hazard
 \begin{equation}
 h(t \mid \mathbf{x}) \;=\; P\bigl(t^{\mathrm{res}} \in b_t \;\big|\; t^{\mathrm{res}} \ge b_t,\, \mathbf{x}\bigr)
 \label{eq:hazard}

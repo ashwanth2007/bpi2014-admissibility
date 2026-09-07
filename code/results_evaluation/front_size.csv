@@ -1,0 +1,14 @@
+policy,mean,min,max,count
+FIFO,,,,0
+GreedyBestOutcome,,,,0
+LeastLoaded,,,,0
+NSGA3,17.573333333333334,12.0,26.0,150
+NSGA3-PrioInit,16.813333333333333,13.0,23.0,150
+PAA-AdaptMut,60.0,60.0,60.0,150
+PAA-NSGA-II,60.0,60.0,60.0,150
+PAA-noAdaptive,60.0,60.0,60.0,150
+PAA-noPriority,60.0,60.0,60.0,150
+PAA-noSLAMut,60.0,60.0,60.0,150
+Random,,,,0
+RoundRobin,,,,0
+StandardNSGA2,60.0,60.0,60.0,150

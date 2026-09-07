@@ -1,0 +1,44 @@
+  File "D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\.venv\Lib\site-packages\joblib\externals\loky\backend\context.py", line 257, in _count_physical_cores
+    cpu_info = subprocess.run(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Road Traffic Fine Management, Italian local police: 150370 cases, 561470 events
+  cases with a decision point: 150370 of 150370
+  right-censoring guard [p95]: dropped 16414 of 150370 (10.92%), threshold rule alone would drop 4812
+  breach rate: 0.4414  strata: 4
+  admissible 13, contaminated 16, groups 136
+
+contaminated (18 features)
+  XGBoost       AUC 0.9789  F1 0.9440  Acc 0.9491
+  LightGBM      AUC 0.9788  F1 0.9436  Acc 0.9487
+  CatBoost      AUC 0.9788  F1 0.9434  Acc 0.9485
+  RandomForest  AUC 0.9788  F1 0.9430  Acc 0.9480
+
+admissible (13 features)
+  XGBoost       AUC 0.6464  F1 0.5510  Acc 0.6032
+  LightGBM      AUC 0.6447  F1 0.5440  Acc 0.6029
+  CatBoost      AUC 0.6415  F1 0.5402  Acc 0.6039
+  RandomForest  AUC 0.6430  F1 0.5290  Acc 0.6113
+
+chronological (13 features)
+  XGBoost       AUC 0.5662  F1 0.5199  Acc 0.5305
+  LightGBM      AUC 0.5581  F1 0.5197  Acc 0.5249
+  CatBoost      AUC 0.5873  F1 0.4082  Acc 0.6017
+  RandomForest  AUC 0.5722  F1 0.4757  Acc 0.5523
+
+==================================================================
+Config        admissible  chronological  contaminated    cost  share_of_signal_pct
+Model                                                                             
+CatBoost          0.6415         0.5873        0.9788  0.3373              70.4476
+LightGBM          0.6447         0.5581        0.9788  0.3341              69.7760
+RandomForest      0.6430         0.5722        0.9788  0.3358              70.1262
+XGBoost           0.6464         0.5662        0.9789  0.3326              69.4415
+
+written to results_trafficfines/

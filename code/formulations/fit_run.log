@@ -1,0 +1,57 @@
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\phase4\sim\replay.py:78: DtypeWarning: Columns (7) have mixed types. Specify dtype option on import or set low_memory=False.
+  inc = pd.read_csv(d / "Detail_Incident.csv", sep=";", encoding="latin1")
+====================================================================================================
+  Fitting F1 and F2 on BPI Challenge 2014, training period only
+====================================================================================================
+
+incidents: 39449   groups: 87   categories: 61
+training period: 31559 incidents, evaluation period: 7890
+breach rate overall 0.4084 | train 0.4232 | eval 0.3492
+
+assignment delay capped at 168 h: 171 of 39449 finite rows excluded (0.4%)
+  uncapped delay distribution: median 0.49 h, p90 16.57 h, p99 92.52 h
+
+s5 freshness decay   lambda = 0.017366 per hour   95% CI [0.016071, 0.018766]   n = 31394
+  uncapped control fit  lambda = 0.009701 per hour   95% CI [0.008799, 0.010697]   n = 31559
+s6 urgency ramp      k = 0.022780   tau0 = -12.0303 hours   n = 31394
+s3 cosine expertise  eval matrix (7890, 87)   exact zeros 206214 (30.04%)   groups with no history 0
+s4 workload          Jain 0.3301 | sd 516.72 | CV 1.4245  (both reported, neither substituted)
+
+training the two lead-level models via the existing Scorer ...
+Training lead-level models on the first 80% of the timeline:
+  P(SLA breach)                holdout AUC = 0.7879
+  P(reassigned)                holdout AUC = 0.8187
+  P(breach) holdout AUC   0.7879
+  P(reassign) holdout AUC 0.8187
+
+decision matrix: (4000, 87, 7)  (348000 lead-group pairs x 7 criteria)
+
+weights:
+  critic   [0.1628 0.1589 0.2582 0.1223 0.0913 0.0783 0.1283]
+  entropy  [0.1283 0.1032 0.4687 0.     0.0071 0.0065 0.2861]
+  equal    [0.1429 0.1429 0.1429 0.1429 0.1429 0.1429 0.1429]
+
+p sweep written (11 exponents, floor applied for p <= 0)
+rank stability:
+  critic_vs_entropy      spearman rho = 0.9463
+  critic_vs_equal        spearman rho = 0.9592
+  entropy_vs_equal       spearman rho = 0.8556
+
+fitting F2 discrete-time RESOLUTION hazard on real durations ...
+  modelling breach DIRECTLY is degenerate on this log: past its own per-priority
+  threshold a case has measured breach rate 1.0000, so elapsed time plus priority
+  determines the label and a breach-hazard model reads the answer (AUC 0.94).
+  The event modelled here is RESOLUTION, which elapsed time does not determine.
+  person-period rows 161720 from 39449 cases (4.10x expansion)
+  bin-level RESOLUTION rate 0.2430
+  held-out resolution-hazard AUC 0.7640
+  DERIVED breach risk at intake, held-out AUC 0.8373
+  static breach model for comparison        0.7879
+  survival monotonic within every case: True
+  REJECTED breach-hazard with elapsed time, held-out AUC 0.9542
+    label is a step function of handle time within every priority class: True
+    16111 of 39449 cases at or past the implied cut, breach rate there 1.0000
+
+====================================================================================================
+  wrote 7 artifacts to D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_formulations in 24.5s
+====================================================================================================

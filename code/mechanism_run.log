@@ -1,0 +1,12 @@
+  bpic2017 done
+  sepsis done
+  hospital done
+  trafficfines done
+
+log             adm AUC     full%   counts% no_counts%
+bpic2017         0.6664     57.9%    53.6%      57.8%
+sepsis           0.6046     66.9%    64.0%      60.7%
+hospital         0.9042      9.7%     7.9%       7.7%
+trafficfines     0.6464     69.5%    69.4%       3.0%
+
+written to results_crosslog/

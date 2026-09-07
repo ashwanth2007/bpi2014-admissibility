@@ -1,0 +1,12 @@
+  corrected          incidents 46605   admissible 0.8258  chronological 0.8076
+  truncated_data     incidents 31237   admissible 0.8215  chronological 0.7769
+  legacy_dates       incidents 46605   admissible 0.7869  chronological 0.7927
+  queue_lookahead    incidents 46605   admissible 0.8273  chronological 0.8021
+  rule2_foldrefit    incidents 46605   admissible 0.8301  chronological 0.8077
+  all_defects        incidents 31237   admissible 0.7996  chronological 0.7235
+
+wrote D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_crosslog\attribution.csv
+
+Each row reintroduces ONE defect with everything else corrected, so the deltas do
+not have to add up: defects can interact, and the all_defects row is what says
+whether they do.

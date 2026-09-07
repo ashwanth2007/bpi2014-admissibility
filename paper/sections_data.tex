@@ -7,7 +7,8 @@
 \section{Data and the admissibility protocol}
 \label{sec:data}
 
-\subsection{The log}
+\subsection{The spine log: BPI Challenge 2014}
+\label{sec:spine-log}
 
 BPI Challenge 2014 \citep{dongen2014challenge} is the incident-management record of Rabobank
 Nederland Group ICT, released for the 2014 Business Process Intelligence Challenge. It is one
@@ -21,45 +22,69 @@ working statistics.
 \caption{Dataset statistics. Counts are produced by \texttt{evaluation/deep\_metrics.py} and
 written to \texttt{dataset\_stats.csv}; nothing in this table is typed by hand.}
 \label{tab:dataset}
-\begin{tabular}{lr}
-\toprule
-Property & Value \\
-\midrule
-Raw incident records & \num{31238} \\
-Raw activity events & \num{210837} \\
-Raw interaction records & \num{68358} \\
-Incidents with a resolvable handle time and priority & \num{31236} \\
-Incidents in the predictive modelling matrix & \num{31236} \\
-Distinct first-assignment groups & \num{117} \\
-Distinct configuration-item types & \num{13} \\
-Distinct configuration-item subtypes & \num{58} \\
-Distinct service components (WBS codes) & \num{259} \\
-Admissible attributes after the protocol & \num{17} \\
-Attributes excluded as inadmissible & \num{9} \\
-\midrule
-Breach cases (positive class) & \num{11444} \\
-Non-breach cases (negative class) & \num{19792} \\
-Positive class rate & \num{0.3664} \\
-\midrule
-Training incidents, random \num{70}/\num{30} split & \num{21865} \\
-Test incidents, random \num{70}/\num{30} split & \num{9371} \\
-Training incidents, chronological holdout & \num{24988} \\
-Test incidents, chronological holdout & \num{6248} \\
-\midrule
-Earliest incident open time & 2012-01-10 \\
-Latest incident open time & 2014-12-01 \\
-Observation window & \num{1055} days \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_dataset}
+
 \end{table}
 
-Four properties of the raw files silently corrupt a naive load, and they are recorded here
+Five properties of the raw files silently corrupt a naive load, and they are recorded here
 because they cost real debugging time and because a reader attempting to reproduce this work
-will meet all four. The files are semicolon delimited rather than comma delimited. They are
+will meet all five. The files are semicolon delimited rather than comma delimited. They are
 encoded latin-1 rather than UTF-8, so the group names carry mojibake under a UTF-8 read. The
 handle-time column uses a decimal comma, so a direct numeric cast silently produces nulls.
-And the incident header pads to 78 columns with empty trailing delimiters, which shifts the
+The incident header pads to 78 columns with empty trailing delimiters, which shifts the
 column index of every field a naive parser reads positionally.
+
+And the fifth, which is the one this work got wrong rather than avoided: the timestamps are
+day-first, and the two files do not even agree on the separator. The incident header writes
+\texttt{dd/mm/yyyy} and the activity log writes \texttt{dd-mm-yyyy}. On the \SI{41.0}{\percent} of
+rows where both leading fields are at most twelve the date is ambiguous, a month-first parse
+transposes day and month silently, and no error is raised anywhere. An earlier version of this
+pipeline did exactly that, and Section~\ref{sec:harness-defects} records what it cost. The format
+must be stated explicitly and never inferred: \texttt{dayfirst=True} alone is a hint that pandas is
+free to ignore per row, while an explicit format string is not.
+
+
+\subsection{Four further logs, and the specification fixed for each}
+\label{sec:four-logs}
+
+A protocol measured on one log says what that log costs, not what the protocol costs. Four
+further public event logs are therefore carried through the identical pipeline: BPI
+Challenge 2017 \citep{dongen2017challenge}, consumer lending at a Dutch financial
+institute; Sepsis Cases \citep{mannhardt2016sepsis}, emergency care pathways; Hospital
+Billing \citep{mannhardt2017billing}, the financial settlement of treatment episodes; and
+Road Traffic Fine Management \citep{deleoni2015roadfines}, an Italian municipal penalty
+process. They were chosen to span domains rather than to resemble the first, and two of them
+are keyed by an individual resource rather than by a team, which is the case the single-log
+study could not reach.
+
+The risk in adding logs is not technical, it is that a decision point or a label gets chosen
+after seeing what it scores. Table~\ref{tab:logspec} is the guard against that. For every
+log the decision point, the outcome and the Rule 2 encoding key were written into
+\texttt{code/log\_schemas.py} and committed before any score was computed on that log, and
+the table is printed from that file rather than transcribed from it. Every log's number is
+reported whichever way it falls; only the framing was left open.
+
+\begin{table}[htbp]
+\centering
+\caption{The specification fixed for each log before any score was computed on it, printed
+from \texttt{code/log\_schemas.py}. The final column counts case attributes admissible at
+$t_{\mathrm{dec}}$ against those recorded but not knowable there. For BPI 2014 those eight
+admissible attributes expand into the seventeen model features of Table~\ref{tab:cost}; the
+other four logs use the attributes directly. Where a definition needed a paragraph of
+rationale, the first sentence is shown and the rest is in the schema file.}
+\label{tab:logspec}
+\small
+\input{generated/tab_logspec}
+
+\end{table}
+
+One scoping statement belongs here rather than later. The two scoring formulations of
+Section~\ref{sec:formulation-results} and the assignment study of
+Section~\ref{sec:assignment-results} are built on BPI 2014 alone. They need a candidate set,
+a capacity model and a per-priority service target, and only the spine log carries all three.
+The five-log result is the admissibility measurement; the single-log result is what an
+admissible model is then used for. They are reported separately and should not be read as one
+claim.
 
 \subsection{Two working sets, and why they differ}
 \label{sec:two-sets}
@@ -68,15 +93,15 @@ The paper has two components with different data requirements, and they operate 
 subsets of the same log. Reporting one figure for both would be wrong, so both are stated.
 
 The \emph{predictive} component uses every incident with a resolvable handle time and a
-recorded priority, which is \num{31236} incidents across \num{117} distinct first-assignment
+recorded priority, which is \num{46605} incidents across \num{180} distinct first-assignment
 groups. It places no constraint on group size, because a target encoding with a smoothing prior
 handles a rarely used group correctly by shrinking it towards the population rate.
 
 The \emph{assignment} component of Section~\ref{sec:assignment-results} simulates a decision
 over a candidate set, and a candidate set containing groups that have handled three incidents
 in three years is not a realistic decision. It therefore restricts to assignment groups with at
-least \num{50} recorded cases, which leaves \num{15828} incidents, \num{50} groups and
-\num{47} configuration-item categories, of which the earliest \num{12662} by open time form the
+least \num{50} recorded cases, which leaves \num{39449} incidents, \num{87} groups and
+\num{61} configuration-item categories, of which the earliest \num{31559} by open time form the
 training period on which every parameter is fitted.
 
 \subsection{The service level label}
@@ -99,8 +124,8 @@ y_i \;=\; \mathbb{1}\bigl[\, H_i \;>\; \tau_{\pi(i)} \,\bigr],
 The factor of two is a deliberate choice of a lenient target: at a factor of one the positive
 class would be half the data by construction and the label would carry no information beyond
 the median. Table~\ref{tab:priority} gives the resulting thresholds. The breach rate is
-notably flat across priority classes, between \SI{33.6}{\percent} and \SI{37.6}{\percent},
-which is a direct consequence of defining the threshold within each class: the label measures
+notably flat across the priority classes that carry real volume, between \SI{32.4}{\percent} and
+\SI{37.7}{\percent}. Priority 1 is excluded from that range because it holds \num{3} incidents in the whole log, of which \num{0} breach. The flatness is a direct consequence of defining the threshold within each class: the label measures
 whether a case was slow \emph{for its own priority}, not whether it was slow in absolute terms.
 
 \begin{table}[htbp]
@@ -108,23 +133,15 @@ whether a case was slow \emph{for its own priority}, not whether it was slow in 
 \caption{Per-priority volume, median handle time, derived service level threshold and breach
 rate. Priority 1 does not occur in the filtered log.}
 \label{tab:priority}
-\begin{tabular}{lrrrr}
-\toprule
-Priority & Incidents & Median handle (h) & Threshold $\tau_p$ (h) & Breach rate \\
-\midrule
-2 & \num{521}   & 3.68 & 7.36  & 0.3359 \\
-3 & \num{4347}  & 1.58 & 3.17  & 0.3759 \\
-4 & \num{14810} & 4.05 & 8.10  & 0.3629 \\
-5 & \num{11558} & 8.37 & 16.74 & 0.3686 \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_priority}
+
 \end{table}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.94\textwidth]{fig10_class_balance.pdf}
 \caption{Class balance and priority composition. The positive class is a
-\SI{36.6}{\percent} minority, which is imbalanced enough that accuracy alone would be
+\SI{36.7}{\percent} minority, which is imbalanced enough that accuracy alone would be
 misleading and is why precision, recall, the Matthews correlation coefficient and average
 precision are reported throughout.}
 \label{fig:classbalance}
@@ -169,14 +186,52 @@ where the admissible past set is
 \mathcal{P}(i,g) = \bigl\{\, j : g_j = g,\; t^{\mathrm{res}}_j < t^{\mathrm{open}}_i \,\bigr\},
 \label{eq:pastset}
 \end{equation}
-with smoothing prior $\alpha = 20$ and $\bar{y}_{\mathcal{P}}$ the prior breach rate over the
-same past set. Operationally this means the encoding is refitted inside every cross-validation
-fold and again on the outer training split, never once over the full data before splitting.
+with smoothing prior $\alpha = 20$ and $\bar{y}_{\mathcal{P}}$ the breach rate over the
+admissible past across all groups at the same instant.
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.96\textwidth]{fig19_admissibility_mechanism.pdf}
+\caption{The two rules on a single case timeline. Everything left of $t^{\mathrm{dec}}$ is
+\emph{observable} and admissible under Rule~\ref{eq:rule1}; everything right of it is recorded by the
+log but is not knowable when the decision is taken, and it is the attributes in that region
+that carry the signal this paper prices. Rule~\ref{eq:rule2} cuts a second window, over other
+cases rather than over this one: the group encoding for case $i$ may average only cases that
+had already \emph{resolved} when case $i$ opened, which is a stricter condition than having
+started earlier. The distinction between the two shaded regions is the entire contribution;
+the rest of the paper measures what enforcing it costs.}
+\label{fig:mechanism}
+\end{figure}
+
+The encoding is therefore a function of a case's own history and of nothing else. It does
+not depend on which rows fall in a training split, so it does not need to be refitted
+inside folds: there is no train and test boundary for it to leak across. That is a
+stronger guarantee than fold refitting, which only prevents an encoding from seeing the
+rows in its own evaluation fold and still lets a case be encoded using cases that resolved
+after it opened.
+
+We report what that distinction is worth, because an earlier version of this work used the
+weaker construction. Fitting the encoding over the training rows rather than over
+$\mathcal{P}(i,g)$ raises held-out AUC by \num{0.0040} on the strongest learner. That gain is
+not earned: under a stratified random split it comes from encoding a case opened in 2012
+with cases that resolved in 2014. Every number reported in this paper uses
+Equation~\ref{eq:rule2} as written.
 \citet{pargent2022regularized} show that regularised target encoding outperforms conventional
 categorical handling; the regularisation is exactly what makes refitting necessary, because an
 encoding fitted once over everything contains each row's own label inside its own predictor.
 
 Applying both rules to BPI 2014 admits \num{17} attributes and excludes nine.
+Those nine are not alike, and the distinction matters for reading the cost we report.
+\num{5} of them are rebuilt by the pipeline and are what the unconstrained arm actually
+trains on: reassignment count, groups touched, total activity events, the reopen flag and
+the related-incident count. The remaining \num{4} are recorded exclusions rather than
+measured ones. They appeared in the prior pipeline this study reproduces, they are
+inadmissible for the same reason, and they are listed so the protocol is auditable, but no
+configuration in this paper computes them. The cost of admissibility reported in
+Section~\ref{sec:cost} is therefore the cost of removing the five measured attributes, not
+of removing all nine.
+
 Table~\ref{tab:attributes} lists every one with the reason for its verdict. The table is
 generated from \texttt{feature\_\allowbreak justifications\_\allowbreak leakfree.csv}, which the pipeline writes with a
 \texttt{Known\_\allowbreak at\_\allowbreak assignment\_\allowbreak time} column, so the verdict is a machine-checked property of

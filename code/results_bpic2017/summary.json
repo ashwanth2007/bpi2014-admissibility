@@ -1,0 +1,14 @@
+{
+  "slug": "bpic2017",
+  "name": "BPI Challenge 2017, Dutch financial institute loan applications",
+  "domain": "Financial services, consumer lending",
+  "group_level": "individual",
+  "n_cases": 30686,
+  "n_groups": 120,
+  "breach_rate": 0.0931043472593365,
+  "n_admissible": 12,
+  "n_inadmissible": 7,
+  "best_admissible_auc": 0.6783160610211496,
+  "cost_best": 0.22044039120106473,
+  "share_of_signal_pct": 55.28196220339032
+}

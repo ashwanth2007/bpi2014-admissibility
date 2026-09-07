@@ -1,0 +1,44 @@
+  File "D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\.venv\Lib\site-packages\joblib\externals\loky\backend\context.py", line 257, in _count_physical_cores
+    cpu_info = subprocess.run(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hospital Billing, financial settlement of treatment episodes: 100000 cases, 451359 events
+  cases with a decision point: 100000 of 100000
+  right-censoring guard [p95]: dropped 28139 of 100000 (28.14%), threshold rule alone would drop 11104
+  breach rate: 0.2288  strata: 23
+  admissible 12, contaminated 17, groups 894
+
+contaminated (19 features)
+  XGBoost       AUC 0.9478  F1 0.7697  Acc 0.8789
+  LightGBM      AUC 0.9473  F1 0.7702  Acc 0.8786
+  CatBoost      AUC 0.9436  F1 0.7536  Acc 0.8664
+  RandomForest  AUC 0.9408  F1 0.7562  Acc 0.8711
+
+admissible (12 features)
+  XGBoost       AUC 0.9042  F1 0.7153  Acc 0.8517
+  LightGBM      AUC 0.9043  F1 0.7148  Acc 0.8509
+  CatBoost      AUC 0.9016  F1 0.7027  Acc 0.8410
+  RandomForest  AUC 0.8987  F1 0.7031  Acc 0.8436
+
+chronological (12 features)
+  XGBoost       AUC 0.8987  F1 0.6777  Acc 0.8462
+  LightGBM      AUC 0.8987  F1 0.6796  Acc 0.8467
+  CatBoost      AUC 0.8976  F1 0.6687  Acc 0.8377
+  RandomForest  AUC 0.8932  F1 0.6694  Acc 0.8430
+
+==================================================================
+Config        admissible  chronological  contaminated    cost  share_of_signal_pct
+Model                                                                             
+CatBoost          0.9016         0.8976        0.9436  0.0420               9.4585
+LightGBM          0.9043         0.8987        0.9473  0.0429               9.5926
+RandomForest      0.8987         0.8932        0.9408  0.0420               9.5369
+XGBoost           0.9042         0.8987        0.9478  0.0436               9.7338
+
+written to results_hospital/

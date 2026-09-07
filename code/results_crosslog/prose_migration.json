@@ -1,0 +1,367 @@
+{
+  "applied": [
+    {
+      "file": "sections_discussion.tex",
+      "line": 88,
+      "old": "2714",
+      "new": "4283",
+      "src": "results_deep_7030/confusion_matrices.csv ('contaminated_v1', 'XGBoost') TP",
+      "context": "\\num{9371} held-out incidents, the unconstrained model catches \\num{2714} of \\num{3433}",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 89,
+      "old": "2321",
+      "new": "3811",
+      "src": "results_deep_7030/confusion_matrices.csv ('leakfree', 'XGBoost') TP",
+      "context": "breaches and the admissible one catches \\num{2321}. The \\num{393} cases in that difference are",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 104,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "\\num{0.7859} that are often conflated. Training AUC is \\num{0.9977} at \\num{1093} incidents,",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 120,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "shows it is two failures with different remedies. Ranking degrades from \\num{0.7859} to",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 121,
+      "old": "0.6533",
+      "new": "0.8085",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_AUC",
+      "context": "\\num{0.6533} AUC and no threshold recovers that. The operating point degrades much more",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 122,
+      "old": "0.6399",
+      "new": "0.6794",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_F1",
+      "context": "dramatically, from $F_1 = \\num{0.6399}$ to $F_1 = \\num{0.1596}$ at the default cut point, and",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 123,
+      "old": "0.5072",
+      "new": "0.6198",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_F1",
+      "context": "tuning the cut point on training-period data alone recovers it to \\num{0.5072} without",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_methods.tex",
+      "line": 108,
+      "old": "0.8814",
+      "new": "0.9059",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('contaminated_v1', 'XGBoost') Test_AUC",
+      "context": "so a drop from \\num{0.8814} to \\num{0.7859} is a loss of \\num{0.0955} out of \\num{0.3814}, which",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_methods.tex",
+      "line": 108,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "so a drop from \\num{0.8814} to \\num{0.7859} is a loss of \\num{0.0955} out of \\num{0.3814}, which",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 206,
+      "old": "0.8242",
+      "new": "0.8511",
+      "src": "results_deep_7030/full_metrics.csv ('contaminated_v1', 'XGBoost') AveragePrecision",
+      "context": "Average precision falls from \\num{0.8242} to \\num{0.6888} for XGBoost when admissibility is",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 206,
+      "old": "0.6888",
+      "new": "0.7363",
+      "src": "results_deep_7030/full_metrics.csv ('leakfree', 'XGBoost') AveragePrecision",
+      "context": "Average precision falls from \\num{0.8242} to \\num{0.6888} for XGBoost when admissibility is",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 288,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "not negligible, and it is the honest answer to the question of whether \\num{0.7859} is the",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 317,
+      "old": "0.7850",
+      "new": "0.8266",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') CV_AUC_mean",
+      "context": "The cross-validation mean of \\num{0.7850} and the held-out value of \\num{0.7859} agree to",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 317,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "The cross-validation mean of \\num{0.7850} and the held-out value of \\num{0.7859} agree to",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 345,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "\\num{0.7859} the ceiling of the admissible feature set, or merely the ceiling of an untuned",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 395,
+      "old": "0.6679",
+      "new": "0.7459",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'LightGBM') Test_Recall",
+      "context": "\\num{0.6679} and the best Brier score at \\num{0.1759}, and the worst recall of any admissible",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 401,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "We keep \\num{0.7859} as the figure quoted throughout the rest of the paper. It is the untuned",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 451,
+      "old": "0.1861",
+      "new": "0.1690",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_Brier",
+      "context": "score from \\num{0.1861} to \\num{0.1769} while leaving AUC unchanged at \\num{0.7859} against",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 451,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "score from \\num{0.1861} to \\num{0.1769} while leaving AUC unchanged at \\num{0.7859} against",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 472,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "Held-out AUC falls from \\num{0.7859} to \\num{0.6533}, a further loss of \\num{0.1326} on top of",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 472,
+      "old": "0.6533",
+      "new": "0.8085",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_AUC",
+      "context": "Held-out AUC falls from \\num{0.7859} to \\num{0.6533}, a further loss of \\num{0.1326} on top of",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 499,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "model. The ranking failure underneath it, \\num{0.7859} to \\num{0.6533} AUC, is not repairable by",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 499,
+      "old": "0.6533",
+      "new": "0.8085",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_AUC",
+      "context": "model. The ranking failure underneath it, \\num{0.7859} to \\num{0.6533} AUC, is not repairable by",
+      "qualifiers": []
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 504,
+      "old": "0.5072",
+      "new": "0.6198",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_F1",
+      "context": "reporting the tuned $F_1$ of \\num{0.5072} alone would hide that a deployed model needs its",
+      "qualifiers": []
+    }
+  ],
+  "needs_review": [
+    {
+      "file": "sections_abstract.tex",
+      "line": 17,
+      "old": "0.824",
+      "new": "0.851",
+      "src": "results_deep_7030/full_metrics.csv ('contaminated_v1', 'XGBoost') AveragePrecision",
+      "context": "the problems they are solving: across the five logs their AUC spans \\num{0.824} to",
+      "qualifiers": [
+        "twice",
+        "more than"
+      ]
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 182,
+      "old": "0.7859",
+      "new": "0.8270",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_AUC",
+      "context": "is reported alongside the random split precisely because the gap between them, \\num{0.7859}",
+      "qualifiers": [
+        "about"
+      ]
+    },
+    {
+      "file": "sections_discussion.tex",
+      "line": 183,
+      "old": "0.6533",
+      "new": "0.8085",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_AUC",
+      "context": "against \\num{0.6533}, is itself informative about drift.",
+      "qualifiers": [
+        "about"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 82,
+      "old": "0.824",
+      "new": "0.851",
+      "src": "results_deep_7030/full_metrics.csv ('contaminated_v1', 'XGBoost') AveragePrecision",
+      "context": "occupy a narrow band, \\num{0.824} to \\num{0.979}, a standard deviation of \\num{0.052}. The",
+      "qualifiers": [
+        "twice",
+        "more than"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 177,
+      "old": "0.7772",
+      "new": "0.7451",
+      "src": "results_deep_7030/full_metrics.csv ('leakfree', 'RandomForest') Specificity",
+      "context": "admissible models at \\num{0.7772} and the worst recall at \\num{0.6170}: it declares breach less",
+      "qualifiers": [
+        "close to"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 177,
+      "old": "0.6170",
+      "new": "0.7282",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'RandomForest') Test_Recall",
+      "context": "admissible models at \\num{0.7772} and the worst recall at \\num{0.6170}: it declares breach less",
+      "qualifiers": [
+        "close to"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 179,
+      "old": "0.7185",
+      "new": "0.7389",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'RandomForest') Test_Accuracy",
+      "context": "MCC column matters. On accuracy the random forest (\\num{0.7185}) looks close to XGBoost",
+      "qualifiers": [
+        "close to"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 180,
+      "old": "0.7213",
+      "new": "0.7428",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree', 'XGBoost') Test_Accuracy",
+      "context": "(\\num{0.7213}); on MCC, which is sensitive to both error types on both classes, the gap widens",
+      "qualifiers": [
+        "close to"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 181,
+      "old": "0.3940",
+      "new": "0.4610",
+      "src": "results_deep_7030/full_metrics.csv ('leakfree', 'RandomForest') MCC",
+      "context": "to \\num{0.3940} against \\num{0.4152}.",
+      "qualifiers": [
+        "close to"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 181,
+      "old": "0.4152",
+      "new": "0.4719",
+      "src": "results_deep_7030/full_metrics.csv ('leakfree', 'XGBoost') MCC",
+      "context": "to \\num{0.3940} against \\num{0.4152}.",
+      "qualifiers": [
+        "close to"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 212,
+      "old": "0.47",
+      "new": "0.72",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_Accuracy",
+      "context": "precision below \\num{0.47} and must look at seven incidents in ten.",
+      "qualifiers": [
+        "roughly"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 498,
+      "old": "0.5072",
+      "new": "0.6198",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_F1",
+      "context": "the training period recovers $F_1$ to \\num{0.5072} at recall \\num{0.8858} without touching the",
+      "qualifiers": [
+        "almost"
+      ]
+    },
+    {
+      "file": "sections_results_predictive.tex",
+      "line": 498,
+      "old": "0.8858",
+      "new": "0.7570",
+      "src": "results_bpi_leakfree_7030/model_comparison_leakfree.csv ('leakfree_temporal', 'XGBoost') Test_Recall",
+      "context": "the training period recovers $F_1$ to \\num{0.5072} at recall \\num{0.8858} without touching the",
+      "qualifiers": [
+        "almost"
+      ]
+    }
+  ]
+}

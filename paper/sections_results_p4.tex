@@ -9,7 +9,7 @@
 The protocol runs five operational baselines, standard NSGA-II, NSGA-III as a many-objective
 control, the proposed PAA-NSGA-II, its three single-component ablations, and two post-hoc
 exploratory combinations. Five arrival batches, 30 seeded repeats each, 150 generations,
-population 60. All 1,225 runs completed with \textbf{zero capacity violations}, so the repair
+population 60. All \num{1225} runs completed with \textbf{zero capacity violations}, so the repair
 operator satisfies constraint C2 throughout.
 
 \begin{table}[htbp]
@@ -20,26 +20,8 @@ $f_1$ and $f_4$ are maximised, $f_2$ and $f_3$ minimised. Jain's index is report
 the $f_3$ standard deviation and is not substituted for it.}
 \label{tab:assignment}
 \small
-\begin{tabular}{lrrrrrr}
-\toprule
-Policy & Hypervol. & Front & $f_1$ FTR & $f_2$ breach & $f_3$ load sd & Jain \\
-\midrule
-Random             & --      & --   & 0.5003 & 0.3996 & 0.9307 & 0.4270 \\
-Round robin        & --      & --   & 0.4893 & 0.4198 & 0.8171 & 0.4971 \\
-FIFO               & --      & --   & 0.2989 & 0.5128 & 3.2703 & 0.0566 \\
-Least loaded       & --      & --   & 0.4738 & 0.4224 & 0.4454 & 0.7633 \\
-Greedy best outcome& --      & --   & 0.6809 & 0.3122 & 2.2073 & 0.1170 \\
-\midrule
-PAA minus priority init & 0.4133 & 60.0 & 0.5887 & 0.3257 & 1.1423 & 0.3353 \\
-Standard NSGA-II   & 0.4307 & 60.0 & 0.5893 & 0.3239 & 1.1424 & 0.3387 \\
-PAA minus adaptive crossover & 0.4842 & 60.0 & 0.6155 & 0.3052 & 1.4720 & 0.2326 \\
-PAA minus SLA mutation & 0.4835 & 60.0 & 0.6134 & 0.3145 & 1.4188 & 0.2459 \\
-\textbf{PAA-NSGA-II (proposed)} & \textbf{0.4844} & 60.0 & 0.6117 & 0.3104 & 1.4391 & 0.2409 \\
-\midrule
-NSGA-III (control) & 0.5279 & 18.8 & 0.6323 & 0.3035 & 1.2177 & 0.3078 \\
-NSGA-III + priority init\textsuperscript{*} & 0.5324 & 18.3 & 0.6390 & 0.2916 & 1.3949 & 0.2534 \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_assignment}
+
 
 \vspace{0.4em}
 {\footnotesize \textsuperscript{*}Post-hoc exploratory combination, designed after observing
@@ -49,60 +31,59 @@ the ablation. Reported as exploratory and not claimed as a contribution.}
 \paragraph{The proposed operators improve on their own base algorithm.}
 Against standard NSGA-II over 150 paired runs, PAA-NSGA-II is better on four of five metrics
 by paired Wilcoxon signed-rank with Holm-Bonferroni correction: hypervolume
-($+\num{0.05372}$, $p = \num{2.4e-21}$), first-time-right ($+\num{0.02237}$,
-$p = \num{1.2e-07}$), breach ($-\num{0.01355}$, $p = \num{6.6e-06}$) and expertise match
-($+\num{0.08989}$, $p = \num{8.6e-14}$).
+($+\num{0.00666}$, $p = \num{1.5e-19}$), first-time-right ($+\num{0.01367}$,
+$p = \num{1.3e-5}$), breach ($-\num{0.01322}$, $p = \num{1.5e-4}$) and expertise match
+($+\num{0.04898}$, $p = \num{9.9e-7}$).
 
 \paragraph{The base algorithm matters more than the modifications.}
-NSGA-III, included only as a many-objective control, reaches hypervolume \num{0.5279} against
-\num{0.4844} for the proposed method, a paired difference of $-\num{0.04348}$ at
-$p = \num{1.2e-24}$. It does so with a front of roughly 18 to 19 solutions against 60, so it
-attains higher hypervolume from a third as many points. With five objectives this is the
+NSGA-III, included only as a many-objective control, reaches hypervolume \num{0.0824} against
+\num{0.0762} for the proposed method, a paired difference of $\num{-0.00625}$ at
+$p = \num{1.5e-23}$. It does so with a front of about \num{18} solutions against \num{60}, so it
+attains higher hypervolume from under a third as many points. With five objectives this is the
 regime for which reference-point selection was introduced
 \citep{debjain2014evolutionary,zheng2024runtime}, and the result is consistent with that
 literature rather than in tension with it.
 
 \paragraph{One of three components does the work.}
 Table~\ref{tab:ablation} isolates each modification. Removing priority-aware initialisation
-costs \num{0.0711} hypervolume. Removing adaptive crossover costs \num{0.0002} and removing
-SLA-aware mutation costs \num{0.0009}, both within run-to-run noise. Reporting the three as a
-bundle would have credited them equally, and that would be wrong.
+costs \num{0.0104} hypervolume, so that component is doing real work. The other two are
+not: removing adaptive crossover \emph{raises} hypervolume by \num{0.0005} and removing
+SLA-aware mutation raises it by \num{0.0006}, both small enough to sit inside run-to-run
+noise but neither of them a contribution. Reporting the three as a bundle would have credited
+them equally, and that would have been wrong in both directions.
 
 \begin{table}[htbp]
 \centering
 \caption{Ablation. Change in hypervolume when a single component is removed from the proposed
 method. A negative delta means the component contributes.}
 \label{tab:ablation}
-\begin{tabular}{lrr}
-\toprule
-Component removed & Hypervolume without & $\Delta$ \\
-\midrule
-Priority-aware initialisation & 0.4133 & $-0.0711$ \\
-Adaptive crossover            & 0.4842 & $-0.0002$ \\
-SLA-aware mutation            & 0.4835 & $-0.0009$ \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_ablation}
+
 \end{table}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\textwidth]{fig08_ablation.pdf}
-\caption{Component ablation. Removing priority-aware initialisation costs \num{0.0711}
-hypervolume; removing either of the other two costs less than \num{0.001}, which is inside
-run-to-run noise. Reporting the three as a bundle would have credited them equally.}
+\caption{Component ablation. Removing priority-aware initialisation costs \num{0.0104}
+hypervolume; removing either of the other two changes it by less than \num{0.001} and in the
+opposite direction, which is inside run-to-run noise. Reporting the three as a bundle
+would have credited them equally.}
 \label{fig:ablation}
 \end{figure}
 
 \paragraph{The best configuration is not a significant improvement.}
 Placing the one modification that contributes onto the base algorithm that wins gives the
-highest hypervolume observed, \num{0.5324}. Against plain NSGA-III the paired difference is
-$+\num{0.00449}$ at $p = \num{0.0525}$, which does not clear $\alpha = \num{0.05}$. It is
-reported as exploratory and is not claimed.
+highest hypervolume observed, \num{0.0850}. Against plain NSGA-III the paired difference is
+$\num{+0.00254}$ at $p = \num{6.8e-11}$, which does clear $\alpha = \num{0.05}$. It is still
+reported as exploratory and is still not claimed, because it was designed after reading the
+ablation table on this same data. A post-hoc combination that clears a threshold on the
+data that suggested it has not been tested; it has been fitted. Claiming it would be the
+same error this paper is about, committed one level up.
 
 \paragraph{A real trade-off, visible in two independent metrics.}
-The proposed method loses significantly on workload spread ($+\num{0.29668}$,
-$p = \num{1.6e-22}$). Jain's fairness index agrees: \num{0.2409} against \num{0.3387} for
-standard NSGA-II. The two metrics were computed independently and could have disagreed. The
+The proposed method loses significantly on workload spread ($+\num{0.22006}$,
+$p = \num{1.6e-21}$). Jain's fairness index agrees: \num{0.1207} against
+\num{0.1716} for standard NSGA-II. The two metrics were computed independently and could have disagreed. The
 method concentrates work on capable groups to gain outcome quality, which is a trade-off an
 operator may or may not want. The exponent $p$ in Equation~\ref{eq:powermean} is the parameter
 through which that preference is expressed rather than assumed.

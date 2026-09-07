@@ -10,8 +10,8 @@ Section~\ref{sec:results-predictive} measured a constraint. This section measure
 formulations built under it. The rule for both is the same and is stated once: every constant
 is estimated on the earliest \SI{80}{\percent} of the timeline by incident open time, and every
 number reported as an evaluation is computed on the remaining \SI{20}{\percent}, which the
-fitting never saw. The working set is the \num{15828} incidents and \num{50} groups of
-Section~\ref{sec:two-sets}, of which \num{12662} form the training period.
+fitting never saw. The working set is the \num{39449} incidents and \num{87} groups of
+Section~\ref{sec:two-sets}, of which \num{31559} form the training period.
 
 \subsection{What is fitted, and on how much}
 
@@ -24,38 +24,37 @@ sample size. Nothing in either formulation is a number chosen because it looked 
 estimation uses training-period cases only.}
 \label{tab:fitted}
 \small
-\begin{tabular}{lL{5.1cm}rl}
-\toprule
-Symbol & Quantity & Estimate & Interval / support \\
-\midrule
-$\hat{\lambda}$ & Freshness decay rate, per hour & 0.0191 & [0.0161, 0.0226], $n=\num{7041}$ \\
- & \quad implied half-life (hours) & 36.3 & derived from $\hat{\lambda}$ \\
-$\hat{k}$ & Urgency ramp steepness & 0.0248 & $n=\num{7041}$ \\
-$\hat{\tau}_0$ & Urgency ramp midpoint, hours & $-5.63$ & $n=\num{7041}$ \\
-$\varepsilon$ & Floor applied before any $p\le0$ aggregation & $10^{-3}$ & fixed, reported as a parameter \\
-$\alpha$ & Target-encoding smoothing prior & 20 & fixed \\
-$\hat{\theta}$ & F2 escalation cut point & 0.5305 & tuned on train, $F_1=\num{0.4947}$ \\
-\midrule
-& Cosine-expertise cells evaluated & \num{158300} & $\num{3166}\times\num{50}$ \\
-& \quad of which exactly zero & \num{50102} & \SI{31.65}{\percent} \\
-& Delay rows excluded as corrupt & \num{5627} & cap at 168 h, see Limitations \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_fitted}
+
 \end{table}
 
 Two of these deserve comment rather than a row.
 
-The freshness decay was the first thing to break, and how it broke is worth recording. Fitted
-across the uncorrected \texttt{Assignment\_Delay\_Hours} column the maximum-likelihood estimate
-of $\lambda$ is exactly zero with an undefined confidence interval, which is not a plausible
-decay rate but is a very clear signal. The cause is a corrupted upper tail in the recorded
-first-assignment timestamp: the median delay is \num{16.2} hours against a 90th percentile of
-\num{5684} hours, and the favourable-outcome rate \emph{rises} again across that tail instead of
-falling. Capping at 168 hours excludes \num{5627} rows, \SI{35.6}{\percent}, and produces
-$\hat{\lambda} = \num{0.0191}\,\mathrm{h}^{-1}$ with a well-formed interval. The exclusion is
-reported rather than absorbed, because a third of a variable is a large thing to drop.
+The freshness decay was the first thing to break, and how it broke is worth recording,
+because the first explanation we wrote for it was wrong. Fitted across the assignment delay
+column as it was then loaded, the maximum-likelihood estimate of $\lambda$ came back exactly
+zero with an undefined confidence interval. The delay column showed a median of \num{16.2} hours
+against a 90th percentile of \num{5684} hours, and we recorded that as a corrupted upper tail in
+the log's first-assignment timestamp.
 
-The urgency midpoint $\hat{\tau}_0 = \num{-5.63}$ hours is negative, which means the fitted
+It was not the log. The loader was subtracting a month-first incident timestamp from a
+day-first activity timestamp, so every delay carried a date-convention error of up to eleven
+months, and the tail was ours. Parsed correctly the same column has a median of \num{0.49} hours, a
+90th percentile of \num{16.57} and a 99th of \num{92.52}. The \num{168}-hour cap now excludes
+\num{171} rows of \num{39449}, \SI{0.4}{\percent}, rather than a third of the variable.
+
+The cap therefore survives as a modelling choice and not as a data repair, and it is reported
+as one. A wait of more than a week to first assignment is a different operational regime from
+the speed-to-lead window $s_5$ is meant to score, so those cases are held out of the fit. The
+consequence is measured rather than waved past: the uncapped control fit is now perfectly
+well formed at $\hat{\lambda} = \num{0.0097}\,{\rm h}^{-1}$,
+interval $[\num{0.0088}, \num{0.0107}]$, so capping
+does not rescue a degenerate fit, it nearly doubles the estimated decay rate to
+$\num{0.0174}$. Both are reported. Reading $s_5$ off the capped fit assumes the
+organisation cares about the first week, which is a statement about the process and not about
+the data.
+
+The urgency midpoint $\hat{\tau}_0 = \num{-12.03}$ hours is negative, which means the fitted
 logistic ramp is centred before the observed range begins and $s_6$ is therefore monotonically
 decreasing across the whole range rather than sigmoidal within it. The shape is real and it is
 reported as fitted. It says that on this log urgency has no inflection point inside the
@@ -75,19 +74,8 @@ term $\sum_\ell (1-\rho_{k\ell})$. Exact zeros matter because they are what forc
 Equation~\ref{eq:powermean}.}
 \label{tab:criteria}
 \small
-\begin{tabular}{llrrrrr}
-\toprule
- & Criterion & Mean & SD & Min & Exact zeros & Conflict \\
-\midrule
-$s_1$ & Outcome propensity   & 0.5276 & 0.3168 & 0.0009 & 0     & 5.363 \\
-$s_2$ & Service level survival & 0.6208 & 0.2738 & 0.0000 & \num{4093}  & 5.371 \\
-$s_3$ & Expertise match      & 0.3664 & 0.4247 & 0.0000 & \num{50102} & 6.010 \\
-$s_4$ & Workload headroom    & 0.3758 & 0.0000 & 0.3757 & 0     & 6.024 \\
-$s_5$ & Freshness            & 0.9251 & 0.1741 & 0.0418 & 0     & 6.457 \\
-$s_6$ & Urgency              & 0.4501 & 0.0922 & 0.3819 & 0     & 7.107 \\
-$s_7$ & Importance           & 0.1898 & 0.1710 & 0.0010 & 0     & 5.691 \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_criteria}
+
 \end{table}
 
 \begin{figure}[htbp]
@@ -100,21 +88,23 @@ Equation~\ref{eq:powermean}.}
 
 Three readings, one of them a warning about our own method.
 
-Expertise is bimodal, not continuous. Its standard deviation of \num{0.4247} is the largest in
+Expertise is bimodal, not continuous. Its standard deviation of \num{0.4225} is the largest in
 the table and larger than its mean, which is the signature of a variable that is mostly at zero
-or mostly near one. \num{50102} of \num{158300} cells are exactly zero because the group has no
-training history in that incident's category. This is the fact that forces
-$\varepsilon = 10^{-3}$: without it, every $p \le 0$ aggregation would return zero for a third
-of all candidate pairs, and the score would silently become a filter rather than a ranking.
+or mostly near one. \num{109012} of \num{348000} cells in this decision matrix are exactly
+zero because the group has no training history in that incident's category, and the same
+measurement over the full evaluation matrix in Table~\ref{tab:fitted} agrees to within a point.
+This is the fact that forces $\varepsilon = 10^{-3}$: without it, every $p \le 0$ aggregation would
+return zero for roughly a third of all candidate pairs, and the score would silently become a
+filter rather than a ranking.
 
 Workload headroom is almost constant at the batch level, standard deviation
-$\num{2.9e-5}$. Within a single arrival batch of 40 incidents against 50 groups, no assignment
+$\num{9.8e-06}$. Within a single arrival batch of 40 incidents against \num{87} groups, no assignment
 moves Jain's index far. The criterion does real work when accumulated across the whole
 optimisation horizon, which is where the objective $f_3$ measures it, but as a per-pair score it
 carries almost no discriminating information, and any weighting scheme that reads spread should
 be expected to down-weight it.
 
-Freshness sits near its ceiling, mean \num{0.9251}, because most cases in this log are assigned
+Freshness sits near its ceiling, mean \num{0.9470}, because most cases in this log are assigned
 quickly. A criterion that is near-saturated for most of the data can still be decisive for the
 tail, and the exponential form makes it so, but its \emph{average} contribution is small.
 
@@ -131,21 +121,10 @@ perturbation \citep{linh2025evaluating,paradowski2025novel} and to admit rank re
 \centering
 \caption{Weights under the three schemes. Entropy weighting assigns effectively zero to
 workload headroom, which is the correct response to a criterion with a standard deviation of
-$\num{2.9e-5}$ and an illustration of how differently the two schemes read the same matrix.}
+$\num{9.8e-06}$ and an illustration of how differently the two schemes read the same matrix.}
 \label{tab:weights}
-\begin{tabular}{llrrr}
-\toprule
- & Criterion & CRITIC & Entropy & Uniform \\
-\midrule
-$s_1$ & Outcome propensity     & 0.1605 & 0.1320 & 0.1429 \\
-$s_2$ & Service level survival & 0.1391 & 0.0756 & 0.1429 \\
-$s_3$ & Expertise match        & \textbf{0.2409} & \textbf{0.4583} & 0.1429 \\
-$s_4$ & Workload headroom      & 0.1226 & $\num{1.8e-9}$ & 0.1429 \\
-$s_5$ & Freshness              & 0.1107 & 0.0146 & 0.1429 \\
-$s_6$ & Urgency                & 0.1036 & 0.0107 & 0.1429 \\
-$s_7$ & Importance             & 0.1226 & 0.3087 & 0.1429 \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_weights}
+
 \end{table}
 
 \begin{figure}[htbp]
@@ -155,13 +134,13 @@ $s_7$ & Importance             & 0.1226 & 0.3087 & 0.1429 \\
 \label{fig:weights}
 \end{figure}
 
-The disagreement between the vectors is large. Entropy puts \num{0.4583} on expertise and
-effectively nothing on workload; CRITIC spreads from \num{0.1036} to \num{0.2409}. A reader is
+The disagreement between the vectors is large. Entropy puts \num{0.4687} on expertise and
+effectively nothing on workload; CRITIC spreads from \num{0.0783} to \num{0.2582}. A reader is
 entitled to ask which one the results depend on, and the honest way to answer is to measure it
 rather than to argue for a favourite.
 
-The induced assignment orderings agree closely. Spearman $\rho$ is \num{0.957} between CRITIC
-and uniform weighting, \num{0.935} between CRITIC and entropy, and \num{0.837} between entropy
+The induced assignment orderings agree closely. Spearman $\rho$ is \num{0.959} between CRITIC
+and uniform weighting, \num{0.946} between CRITIC and entropy, and \num{0.856} between entropy
 and uniform, all at $p < 10^{-10}$. So the weighting choice is not load-bearing for these
 results. That is a stronger statement than a defence of any single scheme, and it is
 falsifiable in a way that a defence is not: had the correlations come back at \num{0.4}, the
@@ -184,25 +163,10 @@ measured one. Table~\ref{tab:psweep} sweeps it.
 \centering
 \caption{Assignment score against the compensation exponent, evaluation period. The floored
 column records whether $\varepsilon$ was engaged, which happens for every $p \le 0$ because
-\SI{31.65}{\percent} of expertise cells are exactly zero.}
+\SI{31.3}{\percent} of expertise cells in this matrix are exactly zero.}
 \label{tab:psweep}
-\begin{tabular}{rrrrl}
-\toprule
-$p$ & Mean $A$ & Min $A$ & Max $A$ & Floor engaged \\
-\midrule
-$-4.0$ & 0.0978 & 0.0013 & 0.5645 & yes \\
-$-2.0$ & 0.1185 & 0.0017 & 0.6613 & yes \\
-$-1.0$ & 0.1412 & 0.0027 & 0.7230 & yes (harmonic) \\
-$-0.5$ & 0.1672 & 0.0055 & 0.7532 & yes \\
-$0.0$  & 0.2598 & 0.0256 & 0.7813 & yes (geometric) \\
-$0.25$ & 0.3173 & 0.0396 & 0.7945 & no \\
-$0.5$  & 0.3909 & 0.0834 & 0.8068 & no \\
-$1.0$  & 0.4777 & 0.1663 & 0.8291 & no (arithmetic) \\
-$2.0$  & 0.5760 & 0.2859 & 0.8642 & no \\
-$4.0$  & 0.6873 & 0.3905 & 0.9069 & no \\
-$8.0$  & 0.7921 & 0.4667 & 0.9473 & no \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_psweep}
+
 \end{table}
 
 \begin{figure}[htbp]
@@ -214,11 +178,11 @@ property.}
 \label{fig:psweep}
 \end{figure}
 
-The mean score rises monotonically from \num{0.0978} at $p=-4$ to \num{0.7921} at $p=8$, which
+The mean score rises monotonically from \num{0.0949} at $p=-4$ to \num{0.7787} at $p=8$, which
 is exactly what the power-mean inequality requires and therefore doubles as a correctness test
 on the implementation. The operational content is in the minimum column. At $p=1$ the worst
-candidate pair in the evaluation set still scores \num{0.1663}, because a strong criterion can
-compensate a weak one; at $p=-4$ it scores \num{0.0013}, because it cannot. An organisation
+candidate pair in the evaluation set still scores \num{0.1387}, because a strong criterion can
+compensate a weak one; at $p=-4$ it scores \num{0.0012}, because it cannot. An organisation
 that never wants an incident routed to a group with no relevant history should choose a
 negative $p$ and accept that the floor $\varepsilon$ then determines what "no history" is worth.
 An organisation willing to trade expertise for availability should choose $p \ge 1$. The
@@ -233,23 +197,14 @@ label and one of which is not.
 
 \begin{table}[htbp]
 \centering
-\caption{Service level risk. The person-period expansion turns \num{15828} cases into
-\num{69867} rows over ten elapsed-time bins. Every AUC is on the held-out evaluation period.}
+\caption{Service level risk. The person-period expansion turns \num{39449} cases into
+\num{161720} rows over ten elapsed-time bins. Every AUC is on the held-out evaluation period.}
 \label{tab:hazard}
-\begin{tabular}{lrl}
-\toprule
-Model & Held-out AUC & What it estimates \\
-\midrule
-Direct breach classifier      & 0.7399 & $P(\text{breach} \mid \mathbf{x})$ at intake \\
-Resolution hazard, bin level  & 0.7344 & $h(t \mid \mathbf{x})$ per person-period row \\
-Breach derived from resolution, at intake & \textbf{0.8017} & $S(\tau\mid\mathbf{x})/S(t\mid\mathbf{x})$ \\
-\midrule
-Breach hazard with elapsed time (rejected) & 0.9418 & reads its own label \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_hazard}
+
 \end{table}
 
-The derived quantity is better than the direct classifier by \num{0.0618} AUC. This is the
+The derived quantity is better than the direct classifier by \num{0.0494} AUC. This is the
 result we did not expect and it inverts the usual framing. Admissibility is normally described
 as a constraint that costs performance, and Section~\ref{sec:cost} measures exactly that cost.
 Here, choosing the object that can actually be estimated \emph{improved} estimation, because the
@@ -257,23 +212,33 @@ resolution hazard is a genuine random quantity given elapsed time whereas breach
 threshold, is not.
 
 The rejected row is included deliberately. A breach hazard given elapsed time and priority
-scores \num{0.9418}, which is by a wide margin the best number in this paper and is worthless:
-the measured breach rate past threshold is exactly \num{1.0000}, so the model is reading the
-definition of its label rather than predicting an event. It is reported because a paper about
-claims that fail verification should show its own worked example of the failure, and because a
-reviewer encountering \num{0.9418} elsewhere in this literature now has a specific mechanism to
-test for.
+scores \num{0.9542}, which is by a wide margin the best number in this paper and is worthless.
+The reason is a property of the label, and we test it without reconstructing the label's own
+threshold, since rederiving a formula only proves it gives the same answer twice. Within every
+priority class the longest non-breaching case is shorter than the shortest breaching one, so
+breach is a step function of handle time: of the \num{16111} cases at or past that cut, the
+measured breach rate is exactly \num{1.0000}. The model is reading the definition of its
+label rather than predicting an event. It is reported because a paper about claims that fail
+verification should show its own worked example of the failure, and because a reviewer
+encountering a number of this size elsewhere in this literature now has a specific mechanism
+to test for.
+
+This row is also our own smallest cautionary tale. It stood in the manuscript as a hardcoded
+constant for several drafts, carried forward from an earlier run of a dataset we had since
+replaced, in the one section of the paper whose subject is numbers that nobody re-derived. It
+is now measured in the same run as every other row of Table~\ref{tab:hazard}, on the same
+split, with the same features, changing only the event definition.
 
 Two checks are run on the derived quantity rather than assumed. Survival $S(t\mid\mathbf{x})$ is
 verified monotone non-increasing over the bin sequence, which it must be by construction and
 which fails loudly if the hazard is mis-indexed. And the per-bin resolution rate is
-\num{0.2260}, comfortably away from both zero and one, so the hazard model is estimating a
+\num{0.2430}, comfortably away from both zero and one, so the hazard model is estimating a
 balanced event rather than a rare one.
 
 \subsection{Workload, reported two ways}
 
-Over the \num{50} groups of the evaluation period the load vector has Jain index \num{0.3758},
-standard deviation \num{326.4} and coefficient of variation \num{1.289}. Both the bounded and
+Over the \num{87} groups of the evaluation period the load vector has Jain index \num{0.3301},
+standard deviation \num{516.7} and coefficient of variation \num{1.424}. Both the bounded and
 the unbounded measure are reported for every policy in Section~\ref{sec:assignment-results} and
 neither is substituted for the other, because the proposed method loses on workload spread and
 replacing the metric it loses on after seeing the result would be fitting the metric to the

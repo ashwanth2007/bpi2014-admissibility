@@ -12,7 +12,11 @@ OUTPUTS  code/results_evaluation/    tables as CSV, one JSON summary
 
 Run:  python evaluation/analyse_p4.py
 """
+
 from __future__ import annotations
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import _openmp_first  # noqa: F401  MUST precede sklearn/xgboost/catboost, see module docstring
 
 import argparse
 import json
@@ -61,6 +65,54 @@ def save(fig, name):
 TAG = "fullv3"
 
 
+def check_provenance():
+    """Refuse to report phase-4 results that were measured on a different dataset.
+
+    This exists because it happened. Every phase-4 artifact in the repository had been
+    computed on a truncated, mis-parsed copy of the log carrying 15,828 incidents and 50
+    groups, while the corrected working set holds 39,449 and 87. The CSVs recorded nothing
+    about their own inputs, so the assignment table, the ablation, every hypervolume and the
+    study's headline negative result all read as current for as long as nobody happened to
+    open the run log.
+
+    Two sources are accepted, in order. `provenance_<tag>.json`, written by experiment.py
+    since that discovery. Failing that, the first lines of `<tag>_run.log`, which every run
+    has always written and which is what caught it. If neither can be read, that is reported
+    rather than assumed to be fine.
+    """
+    prov = RES / ("provenance_%s.json" % TAG)
+    shape = None
+    if prov.exists():
+        p = json.load(open(prov, encoding="utf-8"))
+        shape, src = (int(p["incidents"]), int(p["groups"])), prov.name
+    else:
+        log = RES / ("%s_run.log" % TAG)
+        if log.exists():
+            head = log.open(encoding="utf-8", errors="replace").read(4000)
+            m = re.search(r"([\d,]+)\s+incidents,\s*(\d+)\s+groups", head)
+            if m:
+                shape = (int(m.group(1).replace(",", "")), int(m.group(2)))
+                src = log.name
+    if shape is None:
+        print("  [warn] no provenance for tag '%s'. The dataset these results were measured"
+              " on CANNOT be established." % TAG)
+        return
+
+    sys.path.insert(0, str(RES.parent))
+    from sim.replay import BPI2014Replay                                   # noqa: E402
+    live = BPI2014Replay(RES.parent.parent / "bpi2014")
+    now = (int(len(live.df)), int(len(live.groups)))
+    if now != shape:
+        print("=" * 96)
+        print("  STOP. The phase-4 artifacts were measured on a different dataset.")
+        print("    %-28s %s incidents, %s groups" % (src, shape[0], shape[1]))
+        print("    the replay loads today       %s incidents, %s groups" % now)
+        print("  Re-run phase4/experiment.py before anything here is reported.")
+        print("=" * 96)
+        sys.exit(3)
+    print("  provenance OK: %s incidents, %s groups, per %s" % (shape[0], shape[1], src))
+
+
 def require():
     need = [RES / ("summary_%s.csv" % TAG), RES / ("metrics_%s.csv" % TAG),
             RES / ("significance_%s.json" % TAG)]
@@ -69,6 +121,7 @@ def require():
         print("NOT READY. Missing: " + ", ".join(missing))
         print("The full protocol has not written its outputs yet. Nothing is reported.")
         sys.exit(2)
+    check_provenance()
     return [pd.read_csv(need[0]), pd.read_csv(need[1]),
             json.load(open(need[2], encoding="utf-8"))]
 
@@ -140,6 +193,57 @@ def main():
         verdict["proposed_hypervolume"] = float(a)
         verdict["nsga3_beats_proposed"] = bool(b > a)
         verdict["nsga3_advantage_pct"] = float(100 * (b - a) / a) if a else float("nan")
+
+    # ------------------------------------------------- paired hypervolume comparisons
+    # The manuscript quotes paired differences and p-values for two comparisons that nothing
+    # in this script ever computed: the proposed method against NSGA-III, and the exploratory
+    # combination against NSGA-III. They were carried as literals from an earlier run and did
+    # not move when the reference-point fix changed every hypervolume by a factor of six.
+    # They are computed here, on the same (batch, run) pairs as the headline test.
+    from scipy.stats import wilcoxon
+
+    pair_rows = []
+    piv = metrics.pivot_table(index=["batch", "run"], columns="policy",
+                              values="hypervolume", aggfunc="mean")
+    for a, b in [(PROPOSED, "NSGA3"), ("NSGA3-PrioInit", "NSGA3"),
+                 (PROPOSED, CONTROL), ("NSGA3", CONTROL)]:
+        if a not in piv.columns or b not in piv.columns:
+            continue
+        d = piv[[a, b]].dropna()
+        if len(d) < 5:
+            continue
+        diff = (d[a] - d[b]).to_numpy()
+        try:
+            p = float(wilcoxon(d[a], d[b]).pvalue)
+        except ValueError:          # every pair identical
+            p = 1.0
+        pair_rows.append({"a": a, "b": b, "mean_a": float(d[a].mean()),
+                          "mean_b": float(d[b].mean()),
+                          "mean_diff": float(diff.mean()), "p_value": p,
+                          "n_pairs": int(len(d)), "a_better": bool(diff.mean() > 0)})
+    if pair_rows:
+        pd.DataFrame(pair_rows).to_csv(OUT / "pairwise_hypervolume.csv", index=False)
+        print("\nPaired hypervolume comparisons (Wilcoxon signed-rank, same batch and run):")
+        for r in pair_rows:
+            print("  %-16s vs %-16s  diff %+.5f  p = %.3g  n = %d"
+                  % (r["a"], r["b"], r["mean_diff"], r["p_value"], r["n_pairs"]))
+
+    # front size, which the manuscript also quotes and never derived
+    if "front_size" in metrics.columns:
+        fs = metrics.groupby("policy")["front_size"].agg(["mean", "min", "max", "count"])
+        fs.to_csv(OUT / "front_size.csv")
+        print("\nFront size per policy written to front_size.csv")
+
+    # total completed runs and capacity violations, both quoted in the opening paragraph
+    tot = {"runs_completed": int(len(metrics)),
+           "capacity_violations": int(metrics["capacity_violation"].sum())
+           if "capacity_violation" in metrics.columns else None,
+           "batches": int(metrics["batch"].nunique()),
+           "repeats_per_batch": int(metrics["run"].nunique()),
+           "policies": int(metrics["policy"].nunique())}
+    verdict["protocol"] = tot
+    print("\nProtocol: %(runs_completed)d runs, %(policies)d policies, %(batches)d batches, "
+          "%(repeats_per_batch)d repeats, %(capacity_violations)d capacity violations" % tot)
 
     # ------------------------------------------------------------------------- ablation
     abl = {}
@@ -223,6 +327,9 @@ def main():
             cols2 = [C["green"] if v < 0 else C["red"] for v in deltas]
             ax.barh(names, deltas, color=cols2, height=0.55)
             ax.axvline(0, color="black", lw=0.9)
+            lo, hi = min(deltas + [0.0]), max(deltas + [0.0])
+            span = (hi - lo) or 1.0
+            ax.set_xlim(lo - 0.24 * span, hi + 0.24 * span)
             ax.set_xlabel("Change in hypervolume when the component is REMOVED")
             ax.set_title("Ablation: green helps, red hurts")
             for i, v in enumerate(deltas):

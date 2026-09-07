@@ -1,0 +1,27 @@
+Property,Value
+Raw incident records,46606
+Raw activity events,466737
+Raw interaction records,147004
+Incidents with a resolvable handle time and priority,46605
+Incidents in the modelling matrix,46605
+Distinct first-assignment groups,180
+Distinct configuration-item subtypes,65
+Distinct configuration-item types,13
+Distinct service components (WBS),274
+Admissible attributes,17
+Breach cases (positive class),17120
+Non-breach cases (negative class),29485
+Positive class rate,0.3673
+Training rows (random split),32623
+Test rows (random split),13982
+Training rows (chronological),37284
+Test rows (chronological),9321
+Test size fraction,0.3
+Earliest incident open time,2012-02-05 13:32:57
+Latest incident open time,2014-03-31 17:24:49
+Observation window (days),785
+Incidents reassigned at least once,19137
+Reassigned fraction,0.410621
+"Median handle hours, reassigned",14.3892
+"Median handle hours, not reassigned",1.6051
+Reassignment handle-time ratio,8.9644

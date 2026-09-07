@@ -1,0 +1,13 @@
+{
+  "tag": "timing",
+  "written_at": "2026-09-08T01:08:38+0530",
+  "incidents": 39449,
+  "groups": 87,
+  "specialisations": 61,
+  "batches": 2,
+  "runs": 10,
+  "generations": 150,
+  "population": 60,
+  "batch_size": 40,
+  "wall_seconds": 152.2
+}

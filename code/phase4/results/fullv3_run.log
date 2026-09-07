@@ -1,0 +1,92 @@
+Loading BPI 2014 replay ...
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\phase4\sim\replay.py:78: DtypeWarning: Columns (7) have mixed types. Specify dtype option on import or set low_memory=False.
+  inc = pd.read_csv(d / "Detail_Incident.csv", sep=";", encoding="latin1")
+  39,449 incidents, 87 groups, 61 specialisations
+Training lead-level models on the first 80% of the timeline:
+  P(SLA breach)                holdout AUC = 0.7879
+  P(reassigned)                holdout AUC = 0.8187
+  5 arrival batches of 40 leads
+
+  batch 0 reference point fixed across all variants: [-0.303  0.557  2.    -0.118  1.156]
+  batch 0 StandardNSGA2    done (450s elapsed)
+  batch 0 NSGA3            done (450s elapsed)
+  batch 0 PAA-NSGA-II      done (450s elapsed)
+  batch 0 PAA-noPriority   done (450s elapsed)
+  batch 0 PAA-noAdaptive   done (450s elapsed)
+  batch 0 PAA-noSLAMut     done (450s elapsed)
+  batch 0 PAA-AdaptMut     done (450s elapsed)
+  batch 0 NSGA3-PrioInit   done (450s elapsed)
+  batch 1 reference point fixed across all variants: [-0.316  0.623  2.014 -0.133  1.031]
+  batch 1 StandardNSGA2    done (953s elapsed)
+  batch 1 NSGA3            done (953s elapsed)
+  batch 1 PAA-NSGA-II      done (953s elapsed)
+  batch 1 PAA-noPriority   done (953s elapsed)
+  batch 1 PAA-noAdaptive   done (953s elapsed)
+  batch 1 PAA-noSLAMut     done (953s elapsed)
+  batch 1 PAA-AdaptMut     done (953s elapsed)
+  batch 1 NSGA3-PrioInit   done (953s elapsed)
+  batch 2 reference point fixed across all variants: [-0.322  0.585  2.102 -0.102  1.018]
+  batch 2 StandardNSGA2    done (1181s elapsed)
+  batch 2 NSGA3            done (1181s elapsed)
+  batch 2 PAA-NSGA-II      done (1181s elapsed)
+  batch 2 PAA-noPriority   done (1181s elapsed)
+  batch 2 PAA-noAdaptive   done (1181s elapsed)
+  batch 2 PAA-noSLAMut     done (1181s elapsed)
+  batch 2 PAA-AdaptMut     done (1181s elapsed)
+  batch 2 NSGA3-PrioInit   done (1181s elapsed)
+  batch 3 reference point fixed across all variants: [-0.316  0.671  2.028 -0.108  1.018]
+  batch 3 StandardNSGA2    done (1410s elapsed)
+  batch 3 NSGA3            done (1410s elapsed)
+  batch 3 PAA-NSGA-II      done (1410s elapsed)
+  batch 3 PAA-noPriority   done (1410s elapsed)
+  batch 3 PAA-noAdaptive   done (1410s elapsed)
+  batch 3 PAA-noSLAMut     done (1410s elapsed)
+  batch 3 PAA-AdaptMut     done (1410s elapsed)
+  batch 3 NSGA3-PrioInit   done (1410s elapsed)
+  batch 4 reference point fixed across all variants: [-0.271  0.502  2.298 -0.126  1.04 ]
+  batch 4 StandardNSGA2    done (1641s elapsed)
+  batch 4 NSGA3            done (1641s elapsed)
+  batch 4 PAA-NSGA-II      done (1641s elapsed)
+  batch 4 PAA-noPriority   done (1641s elapsed)
+  batch 4 PAA-noAdaptive   done (1641s elapsed)
+  batch 4 PAA-noSLAMut     done (1641s elapsed)
+  batch 4 PAA-AdaptMut     done (1641s elapsed)
+  batch 4 NSGA3-PrioInit   done (1641s elapsed)
+
+======================================================================================================================
+  SUMMARY  (f1 and f4 higher is better; f2, f3, delay lower is better)
+======================================================================================================================
+                   f1_ftr  f2_breach  f3_workload_sd  f4_expertise  delay_hours  hypervolume  matched_fraction  matched_real_breach_rate  capacity_violation
+policy                                                                                                                                                      
+Random             0.4890     0.4351          0.7807        0.3562       1.3269          NaN            0.0400                    0.5417                 0.0
+RoundRobin         0.4592     0.4510          1.1796        0.3449       1.4847          NaN            0.0350                    0.7500                 0.0
+FIFO               0.4500     0.5523          2.5554        0.4039       8.1302          NaN            0.0550                    0.6000                 0.0
+LeastLoaded        0.4473     0.4528          0.4984        0.3876       1.2317          NaN            0.0500                    0.3667                 0.0
+GreedyBestOutcome  0.6998     0.2885          1.6501        0.7162       1.7441          NaN            0.0700                    0.5000                 0.0
+StandardNSGA2      0.6169     0.3146          1.0352        0.6988       0.7163       0.0695            0.0840                    0.4686                 0.0
+NSGA3              0.6455     0.2792          0.9978        0.7556       0.4158       0.0824            0.1080                    0.4797                 0.0
+PAA-NSGA-II        0.6306     0.3014          1.2552        0.7478       0.6830       0.0762            0.0770                    0.4265                 0.0
+PAA-noPriority     0.6156     0.3076          1.0467        0.6644       0.6882       0.0658            0.0750                    0.4557                 0.0
+PAA-noAdaptive     0.6325     0.3028          1.2518        0.7594       0.6308       0.0767            0.0737                    0.4062                 0.0
+PAA-noSLAMut       0.6303     0.2964          1.2414        0.7373       0.6577       0.0767            0.0775                    0.4201                 0.0
+PAA-AdaptMut       0.6337     0.3046          1.2710        0.7657       0.6111       0.0766            0.0777                    0.4407                 0.0
+NSGA3-PrioInit     0.6595     0.2834          1.1679        0.7931       0.4644       0.0850            0.1140                    0.4098                 0.0
+
+======================================================================================================================
+  PAA-NSGA-II vs StandardNSGA2, paired Wilcoxon signed-rank
+======================================================================================================================
+  hypervolume        mean diff +0.00666  p=1.505e-19  n=150  -> PAA better
+  f2_breach          mean diff -0.01322  p=0.0001489  n=150  -> PAA better
+  f1_ftr             mean diff +0.01367  p=1.271e-05  n=150  -> PAA better
+  f3_workload_sd     mean diff +0.22006  p=1.579e-21  n=150  -> Standard better
+  f4_expertise       mean diff +0.04898  p=9.872e-07  n=150  -> PAA better
+
+  Holm-Bonferroni corrected at alpha=0.05:
+    f3_workload_sd     p=1.579e-21  threshold=0.01  SIGNIFICANT
+    hypervolume        p=1.505e-19  threshold=0.0125  SIGNIFICANT
+    f4_expertise       p=9.872e-07  threshold=0.01667  SIGNIFICANT
+    f1_ftr             p=1.271e-05  threshold=0.025  SIGNIFICANT
+    f2_breach          p=0.0001489  threshold=0.05  SIGNIFICANT
+
+Total wall time 1642s
+Wrote results to D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\phase4\results

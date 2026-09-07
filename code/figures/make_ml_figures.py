@@ -9,7 +9,11 @@ a number typed by hand.
 
 Run:  python figures/make_ml_figures.py
 """
+
 from __future__ import annotations
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import _openmp_first  # noqa: F401  MUST precede sklearn/xgboost/catboost, see module docstring
 
 import json
 import warnings
@@ -256,7 +260,7 @@ def fig_shap():
     for y, v in enumerate(sh.Mean_Abs_SHAP):
         ax.text(v + 0.005, y, "%.3f" % v, va="center", fontsize=6.5)
     ax.set_xlabel("Mean absolute SHAP value")
-    ax.set_title("Attribution, admissible XGBoost")
+    ax.set_title("Attribution, admissible LightGBM")
     ax.set_xlim(0, sh.Mean_Abs_SHAP.max() * 1.18)
     save(fig, "fig17_shap_importance")
 

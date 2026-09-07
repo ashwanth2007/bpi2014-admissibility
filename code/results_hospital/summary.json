@@ -1,0 +1,14 @@
+{
+  "slug": "hospital",
+  "name": "Hospital Billing, financial settlement of treatment episodes",
+  "domain": "Healthcare administration",
+  "group_level": "individual",
+  "n_cases": 71861,
+  "n_groups": 894,
+  "breach_rate": 0.22878891192719278,
+  "n_admissible": 12,
+  "n_inadmissible": 7,
+  "best_admissible_auc": 0.9043491209809272,
+  "cost_best": 0.04290308257253239,
+  "share_of_signal_pct": 9.592592776885944
+}

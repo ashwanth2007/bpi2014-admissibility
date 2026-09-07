@@ -57,23 +57,7 @@ Vellore Institute of Technology, Vellore 632014, India\\[0.6em]
 % -------------------------------------------------------------------------- ABSTRACT
 \begin{abstract}
 \noindent
-Predictive process monitoring reports strong discrimination on operational event logs, but
-much of that performance depends on attributes that are unavailable when the decision they
-inform is actually taken. We state a decision-time admissibility protocol, requiring every
-attribute to be observable at the moment of assignment and every group-level target encoding
-to be estimated from past cases only, and we measure what that discipline costs on the BPI
-Challenge 2014 incident log, \num{31236} incidents from a banking IT service desk. Across four
-gradient-boosted learners, enforcing admissibility removes between \num{0.0955} and
-\num{0.1038} AUC, a quarter of all above-chance signal, and every \SI{95}{\percent} bootstrap
-interval on that loss excludes zero. We then measure what admissibility buys. An admissible
-feature ladder rises from \num{0.5076} at three attributes to \num{0.7859} at seventeen without
-any inadmissible attribute. Modelling case resolution as a discrete-time hazard and deriving
-breach as a conditional survival ratio reaches \num{0.8017} AUC at intake against \num{0.7399}
-for a direct classifier, while remaining structurally unable to observe its own label. We
-report confusion matrices, ROC and precision-recall curves, learning curves, calibration,
-per-fold stability and attribution for every configuration, and a five-objective assignment
-study in which the proposed operators beat their own base algorithm but lose to an
-off-the-shelf many-objective control.
+\input{sections_abstract}
 \end{abstract}
 
 \noindent\textbf{Keywords:} predictive process monitoring; data leakage; decision-time
@@ -95,65 +79,13 @@ admissibility; survival analysis; multi-criteria decision making; service level 
 
 \input{sections_discussion}
 
-% ---------------------------------------------------------------------- CONCLUSION
-\section{Conclusion}
+% The abstract, conclusion and declarations are SHARED with the other driver via
+% \input. They used to be duplicated inline in both files and they silently
+% diverged: the IEEE build shipped a code-availability URL the other did not, and both
+% PDFs went out that way. Never inline them again.
+\input{sections_conclusion}
 
-Decision-time admissibility costs \num{0.0955} AUC on this log for the strongest learner, a
-quarter of all above-chance signal, and the same correction appears for all four learners with
-every bootstrap interval excluding zero. The discipline is nevertheless worth paying for: an
-admissible ladder still gains \num{0.2243} AUC between eight and seventeen attributes, so the
-lesson of a leakage finding is not to model with fewer attributes but to model with observable
-ones. Choosing the admissible object rather than the convenient one can improve accuracy
-outright, as deriving breach from a resolution hazard does at \num{0.8017} against
-\num{0.7399}. The admissible model is honest about its limits: it separates cases at
-\num{0.7859} AUC, recovers \SI{67.6}{\percent} of breaches at a precision of
-\SI{60.7}{\percent}, retains a generalisation gap of \num{0.0804} that the learning curve shows
-still closing with data, and loses \num{0.1326} AUC when evaluation moves forward in time
-rather than across a random split. In the assignment component the proposed operators improve
-on their own base algorithm on four of five metrics, a reference-point control improves on them
-again, and an ablation attributes essentially the whole gain to one of the three proposed
-modifications.
-
-Three directions follow. Off-policy evaluation would replace the model-scored counterfactual
-used here with an estimator that has a variance bound. A log carrying individual resource
-identifiers would support the representative-level formulation the score was designed for. And
-the admissibility protocol is stated generally enough to be applied to any process log, so the
-open question is whether the quarter-of-the-signal figure measured here is typical or specific
-to this organisation.
-
-% -------------------------------------------------------------------- DECLARATIONS
-\section*{Data availability}
-
-BPI Challenge 2014 is publicly available from 4TU.ResearchData under DOI
-\href{https://doi.org/10.4121/uuid:c3e5d162-0cfd-4bb0-bd82-af5268819c35}%
-{10.4121/\allowbreak uuid:\allowbreak c3e5d162-0cfd-\allowbreak 4bb0-bd82-\allowbreak af5268819c35}. The incident-detail file used here
-carries DOI \href{https://doi.org/10.4121/uuid:3cfa2260-f5c5-44be-afe1-b70d35288d6d}%
-{10.4121/\allowbreak uuid:\allowbreak 3cfa2260-f5c5-\allowbreak 44be-afe1-\allowbreak b70d35288d6d}. No data were collected by the authors.
-
-\section*{Code availability}
-
-All analysis code, including every script required to regenerate every number, table and figure
-in this paper, is publicly available. Every experiment is seeded and reproducible: two
-invocations with identical arguments produce bitwise-identical metrics.
-
-\section*{Funding}
-
-This research received no specific grant from any funding agency in the public, commercial,
-or not-for-profit sectors.
-
-\section*{Author contributions}
-
-% TO BE CONFIRMED WITH THE TEAM BEFORE SUBMISSION. Placeholder, not a claim.
-
-\section*{Competing interests}
-
-The authors declare no competing interests.
-
-\section*{Ethics}
-
-This study uses a publicly released, anonymised organisational event log. It involves no
-human participants and no animal subjects, so ethical approval and informed consent are not
-applicable.
+\input{sections_declarations}
 
 \bibliography{refs}
 

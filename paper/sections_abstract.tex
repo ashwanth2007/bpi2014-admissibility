@@ -1,0 +1,34 @@
+% Shared abstract body. Included by BOTH paper.tex and paper_ieee.tex.
+% Do not duplicate this text into either driver: that is exactly how the two PDFs
+% diverged before 2026-09-07 (the IEEE build carried a code-availability URL the
+% single-column build did not).
+Predictive process monitoring reports strong discrimination on operational event logs, but
+much of that performance depends on attributes that are unavailable when the decision they
+inform is actually taken. We state a decision-time admissibility protocol, requiring every
+attribute to be observable at the moment of assignment and every group-level target encoding
+to be estimated only from cases that resolved before the case being scored opened, and we
+measure what that discipline costs on \textbf{five public event logs spanning four domains}:
+IT service management, consumer lending, acute care, healthcare administration and public
+administration.
+
+The cost is not a constant. The share of above-chance signal that disappears when
+admissibility is enforced ranges from \SI{9.7}{\percent} on a hospital billing log to
+\SI{69.5}{\percent} on a road traffic fine log. Contaminated models are far more alike than
+the problems they are solving: across the five logs their AUC spans \num{0.824} to
+\num{0.979}, a standard deviation of \num{0.058}, while the admissible models span
+\num{0.613} to \num{0.904}, more than twice that spread. Leakage is a leveller. It makes
+five very different problems look about equally solved, and removing it is what reveals
+which of them are genuinely hard.
+
+On the incident log studied in most detail, enforcing admissibility removes between
+\num{0.0782} and \num{0.0823} AUC across four gradient-boosted learners, close to a fifth of
+all above-chance signal, and every \SI{95}{\percent} bootstrap interval on that loss excludes
+zero. We then measure what admissibility buys. An admissible feature ladder rises from
+\num{0.5100} at three attributes to \num{0.8258} at seventeen without any inadmissible
+attribute. Modelling case resolution as a discrete-time hazard and deriving breach as a
+conditional survival ratio reaches \num{0.8373} AUC at intake against \num{0.7879} for a
+direct classifier, while remaining structurally unable to observe its own label. We report
+confusion matrices, ROC and precision-recall curves, learning curves, calibration, per-fold
+stability and attribution for every configuration, and a five-objective assignment study in
+which the proposed operators beat their own base algorithm but lose to an off-the-shelf
+many-objective control.

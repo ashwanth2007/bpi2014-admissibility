@@ -1,0 +1,67 @@
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\bpi2014_data.py:179: DtypeWarning: Columns (7) have mixed types. Specify dtype option on import or set low_memory=False.
+  inc = pd.read_csv(data_dir / "Detail_Incident.csv", sep=";", encoding="latin1")
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\evaluation\deep_metrics.py:136: DtypeWarning: Columns (7) have mixed types. Specify dtype option on import or set low_memory=False.
+  inter = pd.read_csv(HERE.parent / "bpi2014" / "Detail_Interaction.csv",
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\.venv\Lib\site-packages\joblib\externals\loky\backend\context.py:136: UserWarning: Could not find the number of physical cores for the following reason:
+[WinError 2] The system cannot find the file specified
+Returning the number of logical cores instead. You can silence this warning by setting LOKY_MAX_CPU_COUNT to the number of cores you want to use.
+  warnings.warn(
+  File "D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\.venv\Lib\site-packages\joblib\externals\loky\backend\context.py", line 257, in _count_physical_cores
+    cpu_info = subprocess.run(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\ashwa\anaconda3\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Loading BPI Challenge 2014 data...
+  Incidents:  46,606 rows
+  Activities: 466,737 rows
+
+Median handle time by priority:
+  Priority 1.0: 23.45 hours
+  Priority 2.0: 3.40 hours
+  Priority 3.0: 1.48 hours
+  Priority 4.0: 3.58 hours
+  Priority 5.0: 7.63 hours
+
+After cleaning: 46,605 incidents
+SLA breach rate: 36.7%
+
+Engineering leak-free features...
+Rule 2 mode: exact
+  headline: cost 0.0792 AUC, 19.6% of above-chance signal
+ Priority     n  median_handle_hours  threshold_hours  breach_rate
+      1.0     3            23.448333        46.896667     0.000000
+      2.0   697             3.395278         6.790556     0.324247
+      3.0  6703             1.479722         2.959444     0.369834
+      4.0 22717             3.585000         7.170000     0.361227
+      5.0 16485             7.627222        15.254444     0.376645
+  contaminated_v1  XGBoost       AUC=0.9050 F1=0.7810 gap=+0.0326
+  contaminated_v1  LightGBM      AUC=0.9048 F1=0.7807 gap=+0.0247
+  contaminated_v1  CatBoost      AUC=0.8989 F1=0.7718 gap=+0.0131
+  contaminated_v1  RandomForest  AUC=0.8994 F1=0.7706 gap=+0.0454
+  leakfree         XGBoost       AUC=0.8258 F1=0.6790 gap=+0.0571
+  leakfree         LightGBM      AUC=0.8239 F1=0.6780 gap=+0.0409
+  leakfree         CatBoost      AUC=0.8166 F1=0.6724 gap=+0.0214
+  leakfree         RandomForest  AUC=0.8212 F1=0.6720 gap=+0.0785
+  learning curve n=  1631 train=0.9999 test=0.7765
+  learning curve n=  3262 train=0.9899 test=0.7872
+  learning curve n=  6524 train=0.9601 test=0.8007
+  learning curve n=  9786 train=0.9421 test=0.8076
+  learning curve n= 13049 train=0.9246 test=0.8178
+  learning curve n= 16311 train=0.9130 test=0.8171
+  learning curve n= 19573 train=0.9017 test=0.8196
+  learning curve n= 22836 train=0.8972 test=0.8241
+  learning curve n= 27729 train=0.8878 test=0.8243
+  learning curve n= 32623 train=0.8822 test=0.8259
+  chronological XGBoost       cut=0.38 AUC=0.8074 F1@0.5=0.6087 F1@cut=0.6157
+  chronological LightGBM      cut=0.35 AUC=0.8061 F1@0.5=0.6072 F1@cut=0.6190
+  chronological CatBoost      cut=0.46 AUC=0.8076 F1@0.5=0.6128 F1@cut=0.6202
+  chronological RandomForest  cut=0.41 AUC=0.8021 F1@0.5=0.5914 F1@cut=0.6233
+
+Wrote 16 artifacts to D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_deep_7030
+Total 125.2s

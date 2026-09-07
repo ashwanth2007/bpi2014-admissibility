@@ -1,0 +1,6 @@
+Model,Test_AUC,Diff_vs_untuned,CI_low,CI_high,P_better,Significant
+XGBoost_tuned,0.8329,0.0032,0.0019,0.0046,1.0,True
+LightGBM_tuned,0.8316,0.0019,0.0001,0.0037,0.98,True
+SoftVote_3,0.8325,0.0028,0.0018,0.0038,1.0,True
+SoftVote_4,0.8322,0.0025,0.0015,0.0035,1.0,True
+Stacking,0.8332,0.0035,0.0024,0.0046,1.0,True

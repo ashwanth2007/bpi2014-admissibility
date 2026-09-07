@@ -1,0 +1,16 @@
+{
+  "best_model": "XGBoost_tuned",
+  "best_auc": 0.8371245814044526,
+  "v2_best": 0.7935,
+  "chronological_auc": 0.821,
+  "xgb_params": {
+    "subsample": 0.7,
+    "reg_lambda": 3,
+    "n_estimators": 1200,
+    "min_child_weight": 5,
+    "max_depth": 10,
+    "learning_rate": 0.01,
+    "gamma": 0.5,
+    "colsample_bytree": 0.6
+  }
+}

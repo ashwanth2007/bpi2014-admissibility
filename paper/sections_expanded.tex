@@ -8,8 +8,8 @@
 
 An incident arrives at a service desk. Someone must decide, within seconds, which team
 should handle it. That decision is expensive to reverse: in the log studied here, incidents
-reassigned at least once take \num{8.95} times longer to resolve at the median, \num{14.53}
-hours against \num{1.62}, and \SI{41.1}{\percent} of incidents are reassigned at least once.
+reassigned at least once take \num{8.96} times longer to resolve at the median, \num{14.39}
+hours against \num{1.61}, and \SI{41.1}{\percent} of incidents are reassigned at least once.
 Getting the first assignment right is therefore worth roughly a ninefold reduction in median
 resolution time, and the existing process fails to do so on two cases in five.
 
@@ -61,17 +61,17 @@ standard NSGA-II under the same admissibility constraint?
 
 \begin{enumerate}
 \item A decision-time admissibility protocol stated as two rules and implemented as
-executable constraints rather than as documentation, with its cost measured at \num{0.0955}
+executable constraints rather than as documentation, with its cost measured at \num{0.0792}
 AUC on BPI Challenge 2014, which is \SI{25.0}{\percent} of all above-chance signal (RQ1).
 
-\item An admissible feature ladder rising from \num{0.5076} at three attributes to
-\num{0.7859} at seventeen, a gain of \num{0.2243} AUC obtained without any inadmissible
-attribute, reproduced across two split ratios to within \num{0.003} (RQ2).
+\item An admissible feature ladder rising from \num{0.5100} at three attributes to
+\num{0.8270} at seventeen, a gain of \num{0.2560} AUC obtained without any inadmissible
+attribute, reproduced across two split ratios to within \num{0.0053} (RQ2).
 
 \item Two decision-aware scoring formulations. An assignment score aggregating seven criteria
 by a weighted power mean whose exponent parameterises compensation between criteria, and a
 service level risk score obtained by modelling resolution as a discrete-time hazard and
-deriving breach as a survival ratio. The second reaches \num{0.8017} AUC at intake against
+deriving breach as a survival ratio. The second reaches \num{0.8373} AUC at intake against
 \num{0.7399} for a direct classifier, while being structurally unable to observe its own
 label (RQ3).
 
@@ -113,10 +113,12 @@ axis at once, and measures the cost rather than only prescribing the constraint.
 \citet{teinemaa2019outcome} provide the standard outcome-prediction benchmark across 24
 real-world datasets, complemented by remaining-time benchmarks \citep{verenich2019survey} and
 deep-learning comparisons \citep{ramamaneiro2023learning,kratsch2021machine}. We note
-explicitly that \textbf{BPI Challenge 2014 is not in the Teinemaa dataset list}, verified
-against the paper itself. There is therefore no published same-task baseline on this log, so
-the ranges reported in those benchmarks are used here as context and never as a head-to-head
-comparison. \citet{fertig2026revisiting} revisit the field under foundation models and find
+explicitly that \textbf{BPI Challenge 2014 is not in the Teinemaa dataset list}: that
+benchmark states it discarded the logs from 2013 and 2014 because its selection criterion
+required both case and event attributes. Its reported ranges are therefore used here as
+context and never as a head-to-head comparison. We make no stronger claim than that. Absence
+from one benchmark is not evidence that nobody has published on this log, and we searched for
+a same-task result to compare against without finding one. \citet{fertig2026revisiting} revisit the field under foundation models and find
 that tabular gradient boosting remains competitive, which is why this study uses it.
 
 Prescriptive process monitoring asks what to do rather than what will happen
@@ -168,9 +170,10 @@ printing a number that would invite a false ranking. Accuracy figures across dif
 different labels and different decision points are not on a common scale, and assembling them
 into a league table is the specific practice that produced the leakage literature this paper
 builds on. \textbf{BPI Challenge 2014 is not in the \citet{teinemaa2019outcome} dataset list},
-verified against that paper itself, so there is no published same-task baseline on this log and
-the ranges reported in those benchmarks are used here as context and never as a head-to-head
-comparison.
+which excludes the 2013 and 2014 logs by its own stated selection criterion, so the ranges
+reported there are context and not a head-to-head comparison. That is a statement about one
+benchmark, not about the literature: \citet{dees2014predictive} do publish on this log, on a
+different task and without a decision-time constraint.
 
 \begin{table}[htbp]
 \centering
@@ -179,26 +182,8 @@ figure exists in the cited work but is not on a scale comparable with ours, beca
 the log or the decision point differs.}
 \label{tab:related}
 \small
-\begin{tabular}{L{3.15cm} L{3.0cm} L{2.35cm} L{2.1cm} L{3.35cm}}
-\toprule
-Study & Approach & Data & Reported & Limitation for this question \\
-\midrule
-\citet{kaufman2012leakage} & Formalises leakage and the learn-predict separation & Several & --- & States the condition; does not measure what enforcing it costs \\
-\citet{kapoor2023leakage} & Eight-type leakage taxonomy across 17 fields & 294 papers & --- & Survey of consequences, not a measurement on one log \\
-\citet{abb2024discussion} & Measures example leakage in process mining & Standard BPIC logs & $>\SI{80}{\percent}$ example leakage & Measures the split axis; does not price the feature axis \\
-\citet{mishra2026taxonomy} & Removes leaky features from build prediction & CI build logs & $-15.07$ accuracy points & Different domain; no benefit side reported \\
-\citet{weytjens2022creating} & Leak-free benchmark construction & Process logs & --- & Prescribes the constraint rather than costing it \\
-\citet{teinemaa2019outcome} & Outcome-prediction benchmark & 24 event logs & --- & BPI 2014 not among the datasets \\
-\citet{dees2014predictive} & Workload impact analysis on this log & BPI 2014 & --- & Descriptive; no decision-time constraint \\
-\citet{gouryraj2021service} & Service level breach prediction & ITSM tickets & --- & No admissibility constraint stated \\
-\citet{arain2026novel} & Multi-objective ticket assignment & ITSM & --- & No leakage control on the objective models \\
-\citet{debjain2014evolutionary} & NSGA-III for many-objective problems & Benchmarks & --- & Not applied to assignment under admissibility \\
-\midrule
-\textbf{This work, unconstrained} & Reproduction of the default practice & BPI 2014, \num{31236} & 0.8814 AUC & Reported only to size the correction \\
-\textbf{This work, admissible} & Rules 1 and 2 enforced & BPI 2014, \num{31236} & \textbf{0.7859} AUC & The deployable figure \\
-\textbf{This work, chronological} & Admissible, evaluated forward in time & BPI 2014, \num{31236} & 0.6533 AUC & The figure under drift \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_related}
+
 \end{table}
 
 What is missing from every row above is a measurement, on one log under one protocol, of both

@@ -1,0 +1,14 @@
+{
+  "slug": "sepsis",
+  "name": "Sepsis Cases, hospital emergency care pathways",
+  "domain": "Healthcare, acute treatment",
+  "group_level": "team",
+  "n_cases": 961,
+  "n_groups": 5,
+  "breach_rate": 0.29656607700312176,
+  "n_admissible": 33,
+  "n_inadmissible": 3,
+  "best_admissible_auc": 0.6130140909611639,
+  "cost_best": 0.21096345514950166,
+  "share_of_signal_pct": 65.11669024045263
+}

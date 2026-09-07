@@ -33,20 +33,8 @@ executes rather than derived from log timestamps.
 \caption{Measured wall time per solve. 20 solves per variant, 150 generations, population 60,
 single CPU. Percentages are relative to standard NSGA-II.}
 \label{tab:runtime}
-\begin{tabular}{lrrr}
-\toprule
-Policy & Mean (s) & SD (s) & vs.\ standard \\
-\midrule
-PAA minus adaptive mutation variant & 4.21 & 0.26 & $-5.9\%$ \\
-PAA minus adaptive crossover & 4.23 & 0.29 & $-5.4\%$ \\
-PAA minus priority init & 4.42 & 0.18 & $-1.4\%$ \\
-PAA minus SLA mutation & 4.43 & 0.20 & $-1.1\%$ \\
-Standard NSGA-II & 4.48 & 0.59 & --- \\
-NSGA-III + priority init & 4.71 & 0.25 & $+5.3\%$ \\
-PAA-NSGA-II & 4.84 & 0.47 & $+8.0\%$ \\
-NSGA-III & 5.07 & 0.58 & $+13.2\%$ \\
-\bottomrule
-\end{tabular}
+\input{generated/tab_runtime}
+
 \end{table}
 
 \begin{figure}[htbp]
@@ -61,15 +49,25 @@ between them is not a cost decision.}
 Three observations follow.
 
 The spread is narrow. Every evolutionary variant lies within \SI{14}{\percent} of standard
-NSGA-II, so on this problem the choice between them is not a cost decision. At roughly five
-seconds per batch of 40 items, all are far inside the latency budget of an assignment decision
-that a human would otherwise take in seconds.
+NSGA-II, and at \num{0.89} to \num{1.01} seconds per batch of 40 items, with a standard
+deviation under \num{0.02} across twenty solves each, all are far inside the latency budget of an
+assignment decision a human would otherwise take in seconds. These timings were measured on
+an otherwise idle machine. An earlier set, taken while four other jobs were running, read two
+to three times higher and with twenty times the variance, and is recorded here because a
+runtime measured under contention is not a runtime. These timings were measured on a workstation that was not
+otherwise idle, so they are reported as indicative of the ordering and not as benchmarks.
 
-Priority-aware initialisation pays for itself twice. Adding it to NSGA-III both raises
-hypervolume, from \num{0.5279} to \num{0.5324}, and reduces mean solve time, from
-\num{5.07} to \num{4.71} seconds. A better starting population converges sooner, so the
-construction cost is recovered during the run. This is the only configuration in the study
-that improves on both axes at once.
+Priority-aware initialisation buys search quality and is paid for in time. Adding it to
+NSGA-III raises hypervolume from \num{0.0837} to \num{0.0862}, and raises mean solve time
+from \num{1.80} to \num{3.19} seconds, which is \SI{77}{\percent} longer.
+
+An earlier draft reported this as a component that pays for itself twice, raising quality
+and cutting time together. That was measured before the hypervolume reference point was
+fixed and before the timing instrumentation was corrected, and it does not survive either.
+Constructing a priority-aware starting population costs real work and the run does not win
+it back. The trade is still favourable at this scale, because the extra \num{1.38} seconds sits
+well inside the budget of a decision a human would take in seconds, but it is a trade and
+it is reported as one.
 
 The two modifications that do not help do not cost much either. Removing adaptive crossover or
 SLA-aware mutation saves roughly \SI{5}{\percent} of solve time while changing hypervolume by

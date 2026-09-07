@@ -54,6 +54,10 @@ Run standalone for a self-test on synthetic data with known hazard:
 """
 from __future__ import annotations
 
+import os as _o, sys as _s  # noqa: E402
+_s.path.insert(0, _o.path.dirname(_o.path.dirname(_o.path.abspath(__file__))))
+import _openmp_first  # noqa: F401,E402  pins threads, must precede every ML import
+
 from dataclasses import dataclass, field
 
 import numpy as np

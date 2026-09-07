@@ -15,6 +15,8 @@ training period alone, because a system running forward in time cannot see
 the future medians.
 """
 
+import _openmp_first  # noqa: F401  MUST precede sklearn/xgboost/catboost, see module docstring
+
 import os
 from pathlib import Path
 
@@ -26,6 +28,65 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
+
+# ---------------------------------------------------------------------------------------
+# Rule 2 mode. See causal_encoding.py for why this exists.
+#
+#   "exact"     theta_g(i) over P(i,g) = { j : g_j = g, t_res_j < t_open_i }, which is what
+#               eq:rule2 in the manuscript actually states. Admissible by construction, so it
+#               needs no refitting inside folds: there is no boundary for it to leak across.
+#   "trainrows" the pre-2026-09-07 behaviour, grouping over the training rows. Under a random
+#               split that encodes a 2012 test case with cases that resolved in 2014. Kept so
+#               the paper can report what the approximation was worth: measured at +0.0040 AUC
+#               of unearned signal on XGBoost at 80/20.
+RULE2_MODE = os.environ.get("BPI_RULE2", "exact")
+
+_CAUSAL_TE = None   # DataFrame indexed like d, columns Group_Breach_Rate_TE, Group_Volume_TE
+
+
+def set_causal_te(df):
+    global _CAUSAL_TE
+    _CAUSAL_TE = df
+
+
+def causal_te_available():
+    return _CAUSAL_TE is not None
+
+
+
+# How a case with no recorded resolution time is treated when counting the standing queue.
+# "open"     : it is still open, because at t_open nothing says otherwise. Admissible.
+# "excluded" : it never occupied the queue. Uses future information; kept for sensitivity only.
+# 1,780 of 46,606 cases (3.8 per cent) never resolve, spread evenly across years rather than
+# clustered at the export date, so this is a data-quality gap and not right-censoring. Under
+# "open" the backlog accumulates monotonically and Queue_Length_At_Open correlates 0.93 with
+# open time; under "excluded" it correlates -0.44. Both numbers belong in the paper.
+QUEUE_UNRESOLVED = os.environ.get("BPI_QUEUE_UNRESOLVED", "open")
+
+
+# BPI 2014 timestamp formats. BOTH files are day-first; the incident file uses "/" and the
+# activity file uses "-". This was previously parsed with format="mixed", dayfirst=False on the
+# incident file, which silently swapped day and month on the 41 per cent of rows where both
+# fields are <= 12. Verified from the raw bytes on 2026-09-07: across 46,606 non-blank Open Time
+# values, 27,994 have a first field > 12 and ZERO have a second field > 12, so month-first is
+# arithmetically impossible. Never use format="mixed" on an ambiguous numeric date.
+INCIDENT_TS_FORMAT = "%d/%m/%Y %H:%M:%S"
+ACTIVITY_TS_FORMAT = "%d-%m-%Y %H:%M:%S"
+
+# ---------------------------------------------------------------------------- diagnostics
+# Two switches that deliberately reintroduce a defect, so its effect can be measured rather
+# than asserted. The manuscript says the headline moved because the dataset was completed and
+# the date parse corrected; that is a claim about attribution and it deserves a measurement,
+# not a story. Both default OFF and neither is used by any published run.
+#
+#   BPI_LEGACY_DATES=1   parse the incident file month-first, as the first version did.
+#   BPI_TRUNCATE=<n>     keep only the first n incident rows, emulating the partial copy of
+#                        Detail_Incident.csv this work started from (31,238 rows).
+LEGACY_DATES = os.environ.get("BPI_LEGACY_DATES", "") not in ("", "0", "false")
+TRUNCATE_ROWS = int(os.environ.get("BPI_TRUNCATE", "0") or 0)
+if LEGACY_DATES:
+    INCIDENT_TS_FORMAT = "%m/%d/%Y %H:%M:%S"
+
 
 SEED = 42
 SMOOTHING = 20          # prior weight for group target encoding
@@ -76,6 +137,17 @@ def fit_group_encoding(groups_tr, y_tr):
 
 
 def apply_group_encoding(X, groups, enc):
+    """Attach the two group-level encodings to X.
+
+    In "exact" mode the fitted `enc` is deliberately ignored: the Rule 2 encoding is a
+    function of each case's own history, not of whichever rows happen to be in the training
+    split, so every call site gets the same admissible values without changing its own code.
+    """
+    if RULE2_MODE == "exact" and _CAUSAL_TE is not None:
+        X = X.copy()
+        X["Group_Breach_Rate_TE"] = _CAUSAL_TE.loc[X.index, "Group_Breach_Rate_TE"].values
+        X["Group_Volume_TE"] = _CAUSAL_TE.loc[X.index, "Group_Volume_TE"].values
+        return X
     breach, volume, prior = enc
     X = X.copy()
     X["Group_Breach_Rate_TE"] = groups.map(breach).fillna(prior).values
@@ -119,16 +191,45 @@ def build(data_dir=None, test_size=None, verbose=True):
 
     _p("Loading BPI Challenge 2014 data...")
     inc = pd.read_csv(data_dir / "Detail_Incident.csv", sep=";", encoding="latin1")
+
+    # The published Detail_Incident.csv ends with 203 completely empty rows: every real column
+    # is null, including Incident ID. They survive read_csv as NaN-keyed rows, and any
+    # set_index("Incident ID") then carries 203 duplicate NaN keys, which makes .map() raise
+    # InvalidIndexError. The truncated working copy used before 2026-09-07 did not include
+    # them. Real incidents: 46,606 of 46,809 raw rows, all with unique IDs once these are gone.
+    inc = inc[inc["Incident ID"].notna()].copy()
+    if TRUNCATE_ROWS:
+        # Diagnostic only. The partial copy this work started from was a prefix of the
+        # canonical file, so a prefix is what emulates it.
+        inc = inc.head(TRUNCATE_ROWS).copy()
+        _p("  [diagnostic] BPI_TRUNCATE=%d: incident file cut to %d rows"
+           % (TRUNCATE_ROWS, len(inc)))
+    if LEGACY_DATES:
+        _p("  [diagnostic] BPI_LEGACY_DATES: incident timestamps parsed MONTH-first")
     act = pd.read_csv(data_dir / "Detail_Incident_Activity.csv", sep=";", encoding="latin1")
 
     _p(f"  Incidents:  {len(inc):,} rows")
     _p(f"  Activities: {len(act):,} rows")
 
+
+    # Priority, Impact and Urgency are ordinal 1..5 but are NOT clean integers in the full
+    # published file: one row carries Urgency = "5 - Very Low" rather than "5", which makes
+    # the whole column object dtype and causes XGBoost to reject the matrix outright. The
+    # truncated working copy used before 2026-09-07 did not contain that row, so this never
+    # surfaced. Take the leading integer and coerce; anything unparseable becomes NaN and is
+    # dropped by the existing Priority notna() filter.
+    for _c in ["Priority", "Impact", "Urgency"]:
+        if _c in inc.columns and inc[_c].dtype == object:
+            inc[_c] = pd.to_numeric(
+                inc[_c].astype(str).str.extract(r"^\s*(\d+)", expand=False), errors="coerce")
+        else:
+            inc[_c] = pd.to_numeric(inc[_c], errors="coerce")
+
     inc["Handle_Time_Hours"] = pd.to_numeric(
         inc["Handle Time (Hours)"].astype(str).str.replace(",", "."), errors="coerce")
     for col in ["Open Time", "Resolved Time", "Close Time"]:
-        inc[col] = pd.to_datetime(inc[col], format="mixed", dayfirst=False, errors="coerce")
-    act["DateStamp"] = pd.to_datetime(act["DateStamp"], format="mixed", dayfirst=True, errors="coerce")
+        inc[col] = pd.to_datetime(inc[col], format=INCIDENT_TS_FORMAT, errors="coerce")
+    act["DateStamp"] = pd.to_datetime(act["DateStamp"], format=ACTIVITY_TS_FORMAT, errors="coerce")
 
     # =====================================================================
     # 2.  TARGET  (unchanged from v1, so results stay comparable)
@@ -178,17 +279,36 @@ def build(data_dir=None, test_size=None, verbose=True):
     df["Is_Business_Hours"] = ((df["Open_Hour"] >= 8) & (df["Open_Hour"] <= 18)).astype(int)
     df["Open_Month"] = df["Open Time"].dt.month
 
-    # System load at intake: how many cases were already open. Uses other cases'
-    # timestamps only, and only those already open, so no future information
-    # about THIS case enters.
+    # System load at intake: how many cases were already open at this case's open time.
+    # Uses other cases' timestamps only, and only those already known at that instant.
+    #
+    # CORRECTED 2026-09-07. The previous O(n*k) loop appended a resolution time to the
+    # open set only when one existed, so a case that never resolves in the log was never
+    # counted as occupying the queue at all. That is a look-ahead: at the moment case i
+    # opens, an earlier case with no resolution yet recorded is, on the information then
+    # available, still open. Excluding it uses the fact that it never resolves ANYWHERE in
+    # the log, which is future information. Measured gap on the first 6,000 cases: mean 108
+    # queue positions, max 198, equal to the running count of never-resolved earlier cases.
+    # An unresolved case is now treated as open indefinitely, which is what a decision maker
+    # at time t_open would observe. This is also O(n log n) rather than O(n*k).
     ds = df.sort_values("Open Time")
-    queue_lengths, open_set = [], []
-    for o, r in zip(ds["Open Time"].values, ds["Resolved Time"].values):
-        open_set = [x for x in open_set if x > o or pd.isna(x)]
-        queue_lengths.append(len(open_set))
-        if pd.notna(r):
-            open_set.append(r)
-    ds = ds.assign(Queue_Length_At_Open=queue_lengths)
+    t_open = ds["Open Time"].values.astype("datetime64[ns]").astype(np.int64)
+    t_res_raw = ds["Resolved Time"].values
+    t_res = np.where(np.isnat(t_res_raw), np.iinfo(np.int64).max,
+                     t_res_raw.astype("datetime64[ns]").astype(np.int64))
+    opened_before = np.searchsorted(np.sort(t_open), t_open, side="left")
+    resolved_before = np.searchsorted(np.sort(t_res), t_open, side="left")
+    if QUEUE_UNRESOLVED == "open":
+        ds = ds.assign(Queue_Length_At_Open=opened_before - resolved_before)
+    else:
+        # Sensitivity arm: never-resolved cases are excluded from the queue population
+        # entirely. This is the pre-2026-09-07 behaviour. It is NOT admissible (it uses the
+        # fact that a case never resolves anywhere in the log), and it is retained only so
+        # the paper can report the measurement under both treatments.
+        keep = ~np.isnat(t_res_raw)
+        ob2 = np.searchsorted(np.sort(t_open[keep]), t_open, side="left")
+        rb2 = np.searchsorted(np.sort(t_res[keep]), t_open, side="left")
+        ds = ds.assign(Queue_Length_At_Open=ob2 - rb2)
     df = df.merge(ds[["Incident ID", "Queue_Length_At_Open"]], on="Incident ID", how="left")
 
     # Static configuration-item and category attributes, all present on the record at open
@@ -217,6 +337,19 @@ def build(data_dir=None, test_size=None, verbose=True):
 
     y_all = d["SLA_Breached"]
     g_all = d["First_Assignment_Group"]
+
+    # Rule 2, computed once over the whole log because it is a function of each case's own
+    # history and of nothing else. Attaching it here means every downstream call site gets
+    # the admissible values without knowing this module changed.
+    from causal_encoding import encode_causal
+    _res_raw = d["Incident ID"].map(inc.set_index("Incident ID")["Resolved Time"]).values
+    _t_res = np.where(np.isnat(_res_raw), np.iinfo(np.int64).max,
+                      _res_raw.astype("datetime64[ns]").astype(np.int64))
+    _t_open = pd.to_datetime(d["Open Time"]).values.astype("datetime64[ns]").astype(np.int64)
+    _theta, _cnt = encode_causal(_t_open, _t_res, g_all.values, y_all.values, alpha=SMOOTHING)
+    set_causal_te(pd.DataFrame({"Group_Breach_Rate_TE": _theta, "Group_Volume_TE": _cnt},
+                               index=d.index))
+    _p("Rule 2 mode: %s" % RULE2_MODE)
 
     idx_tr, idx_te = train_test_split(d.index, test_size=test_size, stratify=y_all, random_state=SEED)
 

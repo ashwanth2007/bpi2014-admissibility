@@ -18,7 +18,11 @@ and any figure whose inputs are missing is SKIPPED with a warning rather than fa
 
 Run:  python figures/make_figures.py
 """
+
 from __future__ import annotations
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import _openmp_first  # noqa: F401  MUST precede sklearn/xgboost/catboost, see module docstring
 
 import json
 import warnings
@@ -87,7 +91,7 @@ def fig_admissibility_ladder():
     ax.plot(d80["Num_Features"], d80["Test_AUC"], "s--", color=C["orange"],
             lw=1.5, ms=4.5, label="80/20 split")
     ax.axhline(0.5, color=C["grey"], lw=0.8, ls=":", zorder=0)
-    ax.text(19.6, 0.504, "chance", fontsize=7, color=C["grey"], ha="right", va="bottom")
+    ax.text(4.6, 0.504, "chance", fontsize=7, color=C["grey"], ha="left", va="bottom")
 
     g70 = d70["Test_AUC"].iloc[-1] - d70["Test_AUC"].iloc[1]
     ax.annotate("", xy=(17, d70["Test_AUC"].iloc[-1]), xytext=(17, d70["Test_AUC"].iloc[1]),
@@ -170,7 +174,7 @@ def fig_p_sweep():
     ax.axvline(0, color=C["grey"], lw=0.8, ls=":")
     ax.axvline(1, color=C["green"], lw=0.9, ls="--")
     ax.text(1.08, 0.05, "arithmetic\n(fully compensatory)", fontsize=7, color=C["green"])
-    ax.text(-3.9, 0.86, "non-compensatory\n(worst criterion dominates)", fontsize=7,
+    ax.text(-3.9, 0.68, "non-compensatory\n(worst criterion dominates)", fontsize=7,
             color=C["grey"])
     ax.set_xlabel("Power mean exponent $p$")
     ax.set_ylabel("Assignment score $A(i,j)$")

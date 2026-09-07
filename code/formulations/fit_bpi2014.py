@@ -20,6 +20,10 @@ Run:  python formulations/fit_bpi2014.py
 """
 from __future__ import annotations
 
+import os as _o, sys as _s  # noqa: E402
+_s.path.insert(0, _o.path.dirname(_o.path.dirname(_o.path.abspath(__file__))))
+import _openmp_first  # noqa: F401,E402  pins threads, must precede every ML import
+
 import json
 import sys
 import time
@@ -82,29 +86,59 @@ def main() -> None:
     # speed-to-lead lever the framework exists to act on.
     delay_raw = pd.to_numeric(df["Assignment_Delay_Hours"], errors="coerce").to_numpy()
 
-    # The recorded first-assignment timestamp is corrupted in the upper tail: median 16.2 hours
-    # but the 90th percentile is 5,684 hours, which is 7.8 months, and P(no breach) RISES again
-    # across that tail instead of falling. Those rows are activity-log ordering artifacts, not
-    # slow assignments. Fitting a decay across them returns lambda = 0 with a NaN interval,
-    # which is exactly what the first run produced and is why this cap exists. Rows above the
-    # cap are excluded from the s5 and s6 fits and the exclusion is reported.
+    # A one-week cap on assignment delay. The reason has changed and the change is worth
+    # recording, because the earlier reason was wrong.
+    #
+    # The first version of this comment said the recorded first-assignment timestamp was
+    # corrupted in its upper tail, citing a median of 16.2 hours against a 90th percentile
+    # of 5,684 hours. Both figures were real and neither was the log's fault: the loader was
+    # subtracting a month-first incident timestamp from a day-first activity timestamp, so
+    # the "delay" carried a date-convention error of up to eleven months. With the parse
+    # corrected the tail largely disappears. The cap stays because a genuine week-plus wait
+    # to first assignment is a different operational regime from the speed-to-lead window
+    # this criterion models, but it is now a modelling choice, not a data repair, and it is
+    # reported as one. Every quantity below is measured in this run rather than quoted.
     DELAY_CAP_HOURS = 168.0
     delay = np.where((delay_raw >= 0) & (delay_raw <= DELAY_CAP_HOURS), delay_raw, np.nan)
-    n_excluded = int(np.isfinite(delay_raw).sum() - np.isfinite(delay).sum())
-    print("\nassignment delay capped at %.0f h: %d of %d finite rows excluded as log artifacts (%.1f%%)"
-          % (DELAY_CAP_HOURS, n_excluded, int(np.isfinite(delay_raw).sum()),
-             100.0 * n_excluded / max(int(np.isfinite(delay_raw).sum()), 1)))
+    n_finite = int(np.isfinite(delay_raw).sum())
+    n_excluded = n_finite - int(np.isfinite(delay).sum())
+    delay_median = float(np.nanmedian(delay_raw))
+    delay_p90 = float(np.nanpercentile(delay_raw, 90))
+    delay_p99 = float(np.nanpercentile(delay_raw, 99))
+    print("\nassignment delay capped at %.0f h: %d of %d finite rows excluded (%.1f%%)"
+          % (DELAY_CAP_HOURS, n_excluded, n_finite, 100.0 * n_excluded / max(n_finite, 1)))
+    print("  uncapped delay distribution: median %.2f h, p90 %.2f h, p99 %.2f h"
+          % (delay_median, delay_p90, delay_p99))
 
     good = 1 - r.breached
     ok = np.isfinite(delay) & is_train
     dec = ExponentialDecay().fit(delay[ok], good[ok])
     print("\ns5 freshness decay   lambda = %.6f per hour   95%% CI [%.6f, %.6f]   n = %d"
           % (dec.lam, dec.ci95[0], dec.ci95[1], dec.n_obs))
+    # Control: the same fit with no cap at all. The paper's justification for the cap used to
+    # rest on this returning zero. Whether it still does is a measurement, so it is measured.
+    ok_unc = np.isfinite(delay_raw) & (delay_raw >= 0) & is_train
+    dec_unc = ExponentialDecay().fit(delay_raw[ok_unc], good[ok_unc])
+    print("  uncapped control fit  lambda = %.6f per hour   95%% CI [%.6f, %.6f]   n = %d"
+          % (dec_unc.lam, dec_unc.ci95[0], dec_unc.ci95[1], dec_unc.n_obs))
+
     fitted["s5_freshness_decay"] = {"lambda_per_hour": dec.lam, "ci95": list(dec.ci95),
                                     "n": dec.n_obs, "fitted_on": "training period only",
                                     "delay_cap_hours": DELAY_CAP_HOURS,
-                                    "rows_excluded_as_artifacts": n_excluded,
-                                    "why_capped": "first-assignment timestamp corrupted above ~1 week; uncapped fit returns lambda=0 with a NaN interval"}
+                                    "rows_excluded_above_cap": n_excluded,
+                                    "finite_delay_rows": n_finite,
+                                    "excluded_fraction": n_excluded / max(n_finite, 1),
+                                    "delay_median_hours": delay_median,
+                                    "delay_p90_hours": delay_p90,
+                                    "delay_p99_hours": delay_p99,
+                                    "uncapped_lambda_per_hour": dec_unc.lam,
+                                    "uncapped_ci95": list(dec_unc.ci95),
+                                    "uncapped_n": dec_unc.n_obs,
+                                    "why_capped": ("a week-plus wait to first assignment is a "
+                                                   "different operational regime from the "
+                                                   "speed-to-lead window s5 models; reported "
+                                                   "as a modelling choice, with the uncapped "
+                                                   "control fit recorded beside it")}
 
     # ---------------------------------------------------------------- s6 urgency ramp
     # Hours remaining at first assignment, against the per-priority SLA target that the
@@ -265,17 +299,64 @@ def main() -> None:
     auc_breach_derived = (float(roc_auc_score(y_true, first["breach_risk"].to_numpy()))
                           if len(np.unique(y_true)) > 1 else float("nan"))
 
+    # ------------------------------------------------------- the REJECTED degenerate model
+    # The paper reports this number and calls it worthless, so it has to be measured, not
+    # quoted. It was a hardcoded literal until 2026-09-07, left over from the pre-correction
+    # dataset, in a paper whose subject is claims that fail verification. Same machinery,
+    # same features, same split. The ONLY change is the event: breach instead of resolution.
+    # Elapsed time does not determine resolution; past the per-priority threshold it does
+    # determine breach, so the model reads its own label off the bin index.
+    pp_b = build_person_period(dur, r.breached.astype(int), static, edges)
+    pp_b_train = pp_b[pp_b["_case"].isin(set(train_pos.tolist()))]
+    pp_b_eval = pp_b[pp_b["_case"].isin(set(test_pos.tolist()))]
+    hz_b = DiscreteTimeHazard(bin_edges=edges).fit(pp_b_train, feats)
+    auc_breach_degenerate = float(roc_auc_score(pp_b_eval["y"], hz_b.hazard(pp_b_eval)))
+
+    # And the fact that makes it degenerate, measured rather than asserted, and measured
+    # WITHOUT reconstructing the label's own threshold. Reconstructing it would only prove
+    # that the same formula gives the same answer twice. The claim under test is stronger
+    # and is about the label's shape: within a priority class, is breach a step function of
+    # handle time? If it is, then the longest non-breaching case is still shorter than the
+    # shortest breaching one, and every case past that cut breaches with probability one.
+    # `thr` above is the urgency ramp's SLA target, ONE median, not the label's two, so it
+    # is deliberately not used here.
+    dur_ok = np.isfinite(dur)
+    prio = df["Priority"].to_numpy(dtype=float)
+    step_ok, implied, n_past, n_breach_past = True, {}, 0, 0
+    for p in np.unique(prio[dur_ok]):
+        m = dur_ok & (prio == p)
+        d0, d1 = dur[m & (r.breached == 0)], dur[m & (r.breached == 1)]
+        if not len(d0) or not len(d1):
+            continue
+        implied[float(p)] = float(d1.min())
+        if not (d0.max() < d1.min()):
+            step_ok = False
+        cut = d1.min()
+        n_past += int((dur[m] >= cut).sum())
+        n_breach_past += int(r.breached[m & (dur >= cut)].sum())
+    breach_rate_past_threshold = (n_breach_past / n_past) if n_past else float("nan")
+
     print("  person-period rows %d from %d cases (%.2fx expansion)" % (len(pp), n, len(pp) / n))
     print("  bin-level RESOLUTION rate %.4f" % pp["y"].mean())
     print("  held-out resolution-hazard AUC %.4f" % auc_res)
     print("  DERIVED breach risk at intake, held-out AUC %.4f" % auc_breach_derived)
     print("  static breach model for comparison        %.4f" % sc.tables.auc_breach)
     print("  survival monotonic within every case: %s" % mono)
+    print("  REJECTED breach-hazard with elapsed time, held-out AUC %.4f" % auc_breach_degenerate)
+    print("    label is a step function of handle time within every priority class: %s" % step_ok)
+    print("    %d of %d cases at or past the implied cut, breach rate there %.4f"
+          % (n_past, n, breach_rate_past_threshold))
     haz = {"event_modelled": "resolution, not breach",
            "why": ("breach is a deterministic function of duration versus the per-priority "
-                   "threshold; measured breach rate past threshold is 1.0000, so a "
+                   "threshold; the measured breach rate past threshold is %.4f, so a "
                    "breach-hazard model with elapsed time as a feature reads the label and "
-                   "scored 0.9418 while learning nothing. Verified empirically, not assumed."),
+                   "scored %.4f while learning nothing. Measured in this run, not quoted."
+                   % (breach_rate_past_threshold, auc_breach_degenerate)),
+           "rejected_breach_hazard_auc": auc_breach_degenerate,
+           "breach_rate_past_threshold": breach_rate_past_threshold,
+           "cases_past_threshold": int(n_past),
+           "label_is_step_function_of_duration": bool(step_ok),
+           "implied_cut_hours_by_priority": {str(k): v for k, v in sorted(implied.items())},
            "person_period_rows": int(len(pp)), "cases": int(n),
            "expansion": float(len(pp) / n),
            "bin_resolution_rate": float(pp["y"].mean()),

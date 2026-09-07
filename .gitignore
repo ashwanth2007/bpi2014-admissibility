@@ -21,3 +21,19 @@ paper/*.out
 # OS
 Thumbs.db
 .DS_Store
+
+# The CRM database schema and its 35 Supabase migrations were removed deliberately on
+# 2026-09-07: the paper is about decision-time admissibility on public event logs and the
+# migrations belong to a prototype that is not part of it. Ignored so a directory sync
+# cannot quietly put them back, which is exactly what happened once.
+code/db/
+code/catboost_info/
+
+# scratch and backup files a sync should never carry
+*.pre_rule2
+*.before_refresh
+*.orig_backup
+code/_rerun_*.sh
+code/_fetch_*.sh
+code/_run_*.sh
+code/_finish_*.sh

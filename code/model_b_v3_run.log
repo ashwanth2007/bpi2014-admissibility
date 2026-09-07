@@ -1,0 +1,61 @@
+Incidents 31,236   breach rate 36.6%
+Causal target encodings built in 2s
+Feature matrix: (31236, 28)
+
+================================================================================================================
+  BASELINE MODELS ON THE ENRICHED CAUSAL FEATURE SET
+================================================================================================================
+  XGBoost                                AUC=0.8037  F1=0.6594  Acc=0.7284
+  LightGBM                               AUC=0.8019  F1=0.6579  Acc=0.7249
+  CatBoost                               AUC=0.7945  F1=0.6533  Acc=0.7169
+
+================================================================================================================
+  HYPERPARAMETER SEARCH
+================================================================================================================
+  XGB search 526s  CV-AUC=0.8032  {'subsample': 0.7, 'reg_lambda': 3, 'n_estimators': 1200, 'min_child_weight': 5, 'max_depth': 10, 'learning_rate': 0.01, 'gamma': 0.5, 'colsample_bytree': 0.6}
+  XGBoost_tuned                          AUC=0.8060  F1=0.6564  Acc=0.7326
+  LGBM search 1840s  CV-AUC=0.8029  {'subsample': 0.7, 'reg_lambda': 0, 'num_leaves': 63, 'n_estimators': 400, 'min_child_samples': 50, 'max_depth': -1, 'learning_rate': 0.03, 'colsample_bytree': 0.6}
+  LightGBM_tuned                         AUC=0.8064  F1=0.6617  Acc=0.7313
+
+================================================================================================================
+  ENSEMBLE AND STACKING
+================================================================================================================
+  SoftVote(XGBt,LGBMt,Cat)               AUC=0.8065  F1=0.6631  Acc=0.7316
+  Stacking(LR meta)                      AUC=0.8071  F1=0.6311  Acc=0.7466
+
+================================================================================================================
+  SIGNIFICANCE vs the v2 best (0.7935) and vs this run's own baseline
+================================================================================================================
+  v3 plain XGBoost reference AUC = 0.8037
+    XGBoost_tuned              AUC=0.8060  diff=+0.0023  CI[-0.0008,+0.0050] -> not sig
+    LightGBM_tuned             AUC=0.8064  diff=+0.0026  CI[-0.0001,+0.0052] -> not sig
+    SoftVote                   AUC=0.8065  diff=+0.0027  CI[+0.0006,+0.0048] -> REAL
+    Stacking                   AUC=0.8071  diff=+0.0034  CI[+0.0011,+0.0055] -> REAL
+
+================================================================================================================
+  CHRONOLOGICAL HOLDOUT with the causal features
+================================================================================================================
+  XGBoost_tuned (chronological)          AUC=0.7544  F1=0.5587  Acc=0.7313
+
+================================================================================================================
+  BEST v3 (random split) : Stacking AUC 0.8071
+  v2 best was            : 0.7935
+  Gain                   : +0.0136
+  Clears 0.80?           : YES
+  Chronological AUC      : 0.7544   (v2 was 0.6533)
+================================================================================================================
+
+Top 12 features:
+                 Feature     Gain
+CIName_BreachRate_Causal 0.101155
+ Group_BreachRate_Causal 0.060542
+   WBS_BreachRate_Causal 0.053958
+  Assignment_Delay_Hours 0.041652
+                 Urgency 0.039802
+         CI_Type_Encoded 0.039482
+       Is_Business_Hours 0.039256
+                Priority 0.035813
+      CI_Subtype_Encoded 0.034679
+                  Impact 0.034524
+       CIName_PriorCount 0.033819
+        Group_PriorCount 0.033643

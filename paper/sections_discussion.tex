@@ -4,11 +4,11 @@
 
 \section{Discussion}
 
-\subsection{A quarter of the signal was not there}
+\subsection{A fifth of the signal was not there}
 
-The headline cost figure is \num{0.0955} AUC, or \SI{25.0}{\percent} of everything the
+The headline cost figure is \num{0.0792} AUC, or \SI{19.6}{\percent} of everything the
 unconstrained model achieved above chance. That is not a rounding correction. A practitioner
-deploying the unconstrained model would find a quarter of its apparent discrimination absent
+deploying the unconstrained model would find a fifth of its apparent discrimination absent
 at run time, because the attributes carrying it are recorded only after the decision has been
 taken. The same measurement under an \num{80}/\num{20} split differs by less than
 \num{0.002} AUC, so the estimate is a property of the data rather than of the split.
@@ -22,9 +22,9 @@ the same log under one protocol, so neither can be quoted without the other.
 \subsection{Admissibility is not the same as parsimony}
 
 A natural response to a leakage finding is to use fewer attributes. The ladder shows that
-would be the wrong lesson. Discrimination rises monotonically from \num{0.5076} at three
-admissible attributes to \num{0.7859} at seventeen, a gain of \num{0.2243} AUC, reproduced to
-within \num{0.003} across split ratios. Restricting to a small attribute set costs far more
+would be the wrong lesson. Discrimination rises monotonically from \num{0.5100} at three
+admissible attributes to \num{0.8270} at seventeen, a gain of \num{0.2560} AUC, reproduced to
+within \num{0.0053} across split ratios. Restricting to a small attribute set costs far more
 than enforcing admissibility does.
 
 The distinction matters because the two are easily conflated. Attributes should be dropped
@@ -41,8 +41,8 @@ threshold is exactly \num{1.0000}. An early version scored \num{0.9418} AUC on p
 artifact.
 
 Modelling resolution instead, and deriving breach as the conditional survival ratio
-$S(\tau \mid x) / S(t \mid x)$, produces \num{0.8017} AUC at intake against \num{0.7399} for a
-direct classifier. The admissible formulation is better by \num{0.0618} AUC. Admissibility is
+$S(\tau \mid x) / S(t \mid x)$, produces \num{0.8373} AUC at intake against \num{0.7879} for a
+direct classifier. The admissible formulation is better by \num{0.0494} AUC. Admissibility is
 usually framed as a constraint that costs performance. Here, choosing the object that can
 actually be estimated improved it, because the resolution hazard is a genuine random quantity
 given elapsed time while breach, past the threshold, is not.
@@ -57,8 +57,8 @@ compresses variance. Reporting CRITIC alone would convert a modelling artifact i
 and label it data-driven.
 
 Reporting three schemes resolves this empirically rather than rhetorically. The induced
-assignment orderings agree at Spearman $\rho = \num{0.957}$ between CRITIC and uniform
-weighting and $\rho = \num{0.935}$ between CRITIC and entropy. The weighting choice is
+assignment orderings agree at Spearman $\rho = \num{0.959}$ between CRITIC and uniform
+weighting and $\rho = \num{0.946}$ between CRITIC and entropy. The weighting choice is
 therefore not load-bearing for these results, which is a stronger statement than defending any
 one scheme.
 
@@ -83,16 +83,16 @@ component rather than only in aggregate.
 
 \subsection{What the cost looks like in cases rather than in AUC}
 
-A \num{0.0955} AUC loss is an abstraction. The confusion matrices in
+A \num{0.0792} AUC loss is an abstraction. The confusion matrices in
 Section~\ref{sec:confusion} put it in units an operations manager can act on. On the same
-\num{9371} held-out incidents, the unconstrained model catches \num{2714} of \num{3433}
-breaches and the admissible one catches \num{2321}. The \num{393} cases in that difference are
+\num{13982} held-out incidents, the unconstrained model catches \num{4295} of the \num{5136}
+breaches and the admissible one catches \num{3795}. The \num{500} cases in that difference are
 not a modelling subtlety. They are the incidents an escalation queue built on the
 unconstrained model would appear to catch and would not.
 
 The direction of the error also changes. The unconstrained model is roughly symmetric,
-\SI{79.2}{\percent} specificity against \SI{79.1}{\percent} recall. The admissible model is
-not: \SI{74.7}{\percent} specificity against \SI{67.6}{\percent} recall. Removing the
+\SI{82.3}{\percent} specificity against \SI{83.6}{\percent} recall. The admissible model is
+not: \SI{74.6}{\percent} specificity against \SI{73.9}{\percent} recall. Removing the
 post-hoc attributes removes signal about the long-running cases specifically, because those
 attributes counted the events a long-running case accumulates. What is left behind
 discriminates the ordinary case well and the pathological case poorly, which is the harder
@@ -101,9 +101,9 @@ half of the problem and the half a service desk actually cares about.
 \subsection{The model is data-limited, not capacity-limited}
 
 The learning curve in Section~\ref{sec:learning} separates two explanations for
-\num{0.7859} that are often conflated. Training AUC is \num{0.9977} at \num{1093} incidents,
+\num{0.8270} that are often conflated. Training AUC is \num{0.9999} at \num{1631} incidents,
 so the learner has ample capacity; the ceiling is not the model class. The generalisation gap
-falls monotonically from \num{0.3254} to \num{0.0804} across a twentyfold increase in data
+falls monotonically from \num{0.2234} to \num{0.0563} across a twentyfold increase in data
 and is still falling, and held-out AUC is still rising at the largest training size available.
 
 Two consequences follow, and the second is a warning against the obvious fix. More incidents
@@ -112,44 +112,112 @@ rather than a better algorithm, which is consistent with the four learners landi
 \num{0.0158} AUC of each other. And heavier regularisation is the wrong first response: it
 would close the gap by moving the training curve down, not by moving the held-out curve up.
 The gap is not evidence that the model is over-parameterised. It is evidence that
-\num{21865} incidents is not yet enough for a 17-attribute problem with this much label noise.
+\num{32623} incidents is not yet enough for a 17-attribute problem with this much label noise.
 
 \subsection{Ranking and operating point fail separately}
 
 The chronological result is usually reported as one number, and Section~\ref{sec:temporal}
-shows it is two failures with different remedies. Ranking degrades from \num{0.7859} to
-\num{0.6533} AUC and no threshold recovers that. The operating point degrades much more
-dramatically, from $F_1 = \num{0.6399}$ to $F_1 = \num{0.1596}$ at the default cut point, and
-tuning the cut point on training-period data alone recovers it to \num{0.5072} without
-retraining anything.
+shows it is two failures with different remedies. Ranking degrades from \num{0.8258} to
+\num{0.8074} AUC and no threshold recovers that. The operating point degrades as well, from
+$F_1 = \num{0.6790}$ on the random split to $F_1 = \num{0.6087}$ at the same default cut point,
+and tuning the cut point on training-period data alone recovers it to \num{0.6157} without
+retraining anything. Recall is where the operating point actually moves: \SI{67.7}{\percent} at the
+default against \SI{81.0}{\percent} tuned.
 
 Conflating the two produces the wrong operational conclusion in both directions. A team that
-sees only the $F_1$ collapse will retrain a model that did not need retraining. A team that
+sees only the fall in $F_1$ will retrain a model that did not need retraining. A team that
 sees only the tuned $F_1$ will not learn that its threshold needs re-tuning as the process
-drifts, which on this log it does within a year: median handle time falls from \num{4.73} to
-\num{3.37} hours between the training and evaluation periods.
+drifts, which on this log it does within a year: median handle time falls from \num{4.28} to
+\num{2.79} hours between the training and evaluation periods.
 
-\subsection{Two defects in our own harness}
+\subsection{Six defects in our own work, and what each one cost}
 \label{sec:harness-defects}
 
-Two errors were found in the experimental code and corrected before any number reported here
-was produced. Both are recorded because a paper about claims that do not survive verification
-should hold its own instrument to the same standard.
+Six errors were found in this work and corrected before any number reported here was
+produced. All six are recorded because a paper about claims that do not survive verification
+should hold its own instrument to the same standard, and because an earlier version of this
+section did not: it named three and gave the other three either a sentence elsewhere or
+nothing.
 
-The seed was derived using Python's built-in string hash, which is salted per process. The
+That omission was itself the more serious error, so the ordering here is deliberate. The
+first three below are defects in what was measured. They change what the paper is entitled
+to claim. The last three are defects in the instrument. They change how reliably a number
+can be reproduced, which matters, but a reproducible measurement of the wrong thing is
+still the wrong thing.
+
+\paragraph{Validity 1: the incident file was a partial copy.} The working copy of
+\texttt{Detail\_Incident.csv} held \num{31238} rows against the canonical
+\num{46606}, a third of the log missing, and it was a prefix rather than a sample. The file is
+ordered by incident ID, which tracks open time, so a prefix is close to a truncation in time.
+That is why it cost so much more on the chronological arm than on the random one:
+\num{0.0307} against \num{0.0043}, measured by reintroducing it alone. The canonical file was
+re-downloaded from the 4TU DOI, and the digest of every raw input is now recorded in
+\texttt{code/input\_checksums.json} and checked by \texttt{evaluation/verify\_input\_data.py};
+the incident header is MD5 \texttt{b0608464312c135da289d99911735a5d}. A digest stored on the first day
+would have caught this on the first run, and every artifact computed from the partial file
+was computed correctly from the wrong input, which is the failure mode a checksum exists
+for.
+
+\paragraph{Validity 2: a feature of ours violated our own Rule 1.} The standing-queue
+count at a case's arrival was computed over cases that eventually resolved, excluding the
+\num{1780} that never do. Whether a case will ever resolve is not knowable at
+$t^{\mathrm{dec}}$, so the feature read the future. It is worth stating plainly that this
+is a violation of the rule this paper exists to state, committed by its authors, and that it
+was found by applying the rule mechanically rather than by intuition. Reintroducing it alone
+raises the admissible AUC by \num{0.0015}, which is the direction a leak should move a
+score and is the reason we believe the diagnosis.
+
+\paragraph{Validity 3: Rule 2 was not implemented as Rule 2.} The pipeline refitted the
+group encoding inside every cross-validation fold. That prevents an encoding from seeing the
+rows in its own evaluation fold, and it is what most careful work in this area does, but it
+is not Equation~\ref{eq:rule2}: under a random split a case from 2012 could still be encoded
+using cases that resolved in 2014. The paper's contribution is that equation, so for a period
+the protocol described was not the protocol that ran. It is now implemented as written, in
+\texttt{code/causal\_encoding.py}, checked against an $O(n^2)$ reference implementation to a
+maximum absolute difference of zero. Reintroducing the fold refit alone raises the admissible
+AUC by \num{0.0043}. The distinction is therefore load-bearing for the claim and not for the
+number, and both halves of that sentence are reported.
+
+\paragraph{Instrument 1: the seed was not a seed.} It was derived using Python's built-in string hash, which is salted per process. The
 same variant therefore drew a different seed on every invocation, measured at \num{43},
 \num{41} and \num{32} across three processes for one variant name. The harness documentation
 asserted reproducibility that did not hold. It now uses a stable checksum, and two independent
 invocations produce bitwise-identical metrics.
 
-The hypervolume reference point was taken from whichever run completed first, making every
+\paragraph{Instrument 2: the hypervolume reference point moved.} It was taken from whichever run completed first, making every
 hypervolume value dependent on variant ordering and incomparable between runs with different
 variant sets. It is now the nadir across all variants and all runs on a batch, computed before
 any hypervolume is taken.
 
-Neither defect affects the predictive results in Sections~\ref{sec:cost} to
-\ref{sec:hazard-results}, which come from a separate pipeline. Both invalidated every earlier
-assignment run, and those were discarded.
+\paragraph{Instrument 3: the thread count was never pinned.} This one most directly
+threatens what the paper claims about verification. Every number here is
+printed to four decimals and checked against a tolerance of $\num{0.00005}$. That tolerance
+only means something if a re-run reproduces the number, and it did not. Running the headline
+pipeline with one seed, one dataset and one split, changing nothing but the OpenMP thread
+count, moves the admissible AUC by \num{0.0015} (2 gives \num{0.8267}, 4 gives \num{0.8258}, 8 gives \num{0.8273})
+and the unconstrained AUC by \num{0.0003}. That is roughly \num{30} times the tolerance,
+from a variable that appeared in no configuration file and in no methods section.
+
+The cause is not randomness and no seed can absorb it. Gradient-boosted implementations
+reduce per-thread histogram partials in thread order, floating-point addition is not
+associative, and the resulting difference in a split point compounds through the trees. The
+control confirms it: \num{2} runs at the same thread count are bitwise identical,
+so the variation is entirely explained by how the work was divided, not by what the code did
+with it. The thread count is now pinned in the harness and recorded in every run log, and the
+measurement above is reproduced by \texttt{evaluation/thread\_determinism.py}.
+
+We report it rather than quietly pinning it because the implication generalises past this
+paper. A reviewer who re-runs a published gradient-boosted pipeline on different hardware
+should not expect the fourth decimal to agree, and a paper that verifies its own numbers to
+four decimals without fixing the thread count is verifying them against a moving target. Ours
+was. Pinning does not make the numbers portable across CPU architectures either, since vector
+width changes the summation order within a thread as well; it removes the one source that
+varied on a single machine, which was the source that had been silently moving our own
+results between runs.
+
+The first two instrument defects do not affect the predictive results in
+Sections~\ref{sec:cost} to \ref{sec:hazard-results}, which come from a separate pipeline. Both
+invalidated every earlier assignment run, and those were discarded.
 
 The consequence is worth stating plainly rather than in passing. Under the uncorrected
 harness the proposed method appeared to LOSE to standard NSGA-II on hypervolume. Corrected,
@@ -179,11 +247,19 @@ rather than used as evidence.
 
 \textbf{Internal.} Every parameter is fitted on the earliest \SI{80}{\percent} of the timeline,
 and the escalation cut point is tuned on training-period data alone. The chronological holdout
-is reported alongside the random split precisely because the gap between them, \num{0.7859}
-against \num{0.6533}, is itself informative about drift.
+is reported alongside the random split precisely because the gap between them, \num{0.8270}
+against \num{0.8085}, is itself informative about drift. That gap was \num{0.1326} before the date-parsing defect in the loader was corrected and is \num{0.0185} after it, so most of what earlier drafts read as distribution shift was the shift in how their own timestamps were parsed.
 
-\textbf{External.} One log, one organisation, one country, one time window. The protocol should
-transfer. The magnitudes should not be assumed to.
+\textbf{External.} The protocol is measured on five public event logs spanning four domains:
+IT service management, consumer lending, acute care, healthcare administration and public
+administration. That is enough to say the protocol transfers and enough to say the magnitude
+does not. The share of above-chance signal lost to admissibility ranges from \SI{9.7}{\percent}
+on Hospital Billing to \SI{69.5}{\percent} on Road Traffic Fines. Any single figure quoted from
+one log, including the one this study began with, is a point on that range and not a constant.
+
+Four of the five logs are Dutch or Italian European public releases and all five are historical.
+Nothing here speaks to a live deployment, to a non-European process, or to an organisation that
+knows its assignment policy is being measured.
 
 \textbf{Conclusion.} Statistical comparisons use paired Wilcoxon signed-rank tests with
 Holm-Bonferroni correction across five metrics, and every run is seeded and reproducible.
@@ -197,12 +273,54 @@ conversion outcomes together. That absence is a finding rather than an oversight
 why the evaluation is conducted on an operational log whose assignment decisions and outcomes
 are real even though its domain is not sales.
 
-\textbf{A third of the delay attribute is excluded.} The recorded first-assignment timestamp
-is corrupted in its upper tail: the median is \num{16.2} hours against a 90th percentile of
-\num{5684} hours, and the favourable-outcome rate rises again across that tail rather than
-falling. \SI{35.6}{\percent} of rows are excluded from the freshness and urgency fits on this
-basis. Fitting across the uncorrected attribute returns a decay rate of exactly zero with an
-undefined confidence interval, which is how the corruption was detected.
+\textbf{A parsing defect in an earlier version of this work, and what it cost.} The incident
+file records timestamps day-first; an earlier version of this pipeline parsed them month-first,
+which silently transposed day and month on the \SI{41.0}{\percent} of rows where both fields
+are at most twelve. Two consequences were reported as properties of the data and were not.
+The observation window was given as \num{1055} days against a true \num{785}. And the
+first-assignment delay appeared corrupted in its upper tail, with a median of \num{16.2}
+hours against a 90th percentile of \num{5684}, which led to \SI{35.6}{\percent} of rows being
+excluded from the freshness and urgency fits as log artifacts. Under the correct parse that
+attribute has a median of \num{0.34} hours and a 90th percentile of \num{15.48} over the
+\num{46605} incidents of the predictive matrix, and the exclusion above the \num{168}-hour cap
+falls to \SI{0.4}{\percent}. Table~\ref{tab:fitted} quotes \num{0.49} and \num{16.57} for the same
+attribute because the formulations are fitted on the \num{39449} incidents of the assignment
+working set rather than on all of them; the two populations differ and so do their medians. Nothing was corrupt. The subtraction was mixing two
+date conventions. Every number in this paper is computed after that correction, and the
+defect is recorded here because a paper about attributes that mislead should say when its
+own instrument did.
+
+\paragraph{What the corrections do not account for.} Each of the six was reintroduced on
+its own, everything else held corrected, and the pipeline re-run
+(\texttt{evaluation/attribution\_run.py}). The date defect explains most of the change on
+the random split, \num{0.0389} of \num{0.0399}, and the truncated file explains most of it
+on the chronological arm, \num{0.0307} of \num{0.1543}. But all six reintroduced together
+give \num{0.7996} and \num{0.7235}, while the figures an earlier version of this work
+published were \num{0.7859} and \num{0.6533}. So the reconstruction accounts for about two
+thirds of the change on the random split and just over half of it on the chronological arm.
+The remaining \num{0.0137} and \num{0.0702} are \emph{unexplained}. We do not attribute
+them to the thread count: that effect is measured above at \num{0.0015} and \num{0.0019},
+which is forty times too small to cover the chronological residual, and offering it as a
+candidate would be exactly the kind of unfalsifiable explanation this paper objects to
+elsewhere. The earlier pipeline was rewritten rather than parameterised, so it cannot be
+re-run to settle the question, and a reader is entitled to treat the pre-correction figures
+as unreproducible rather than as merely superseded.
+
+\paragraph{Whether the corrections are self-serving.} They moved the headline from
+\num{0.7859} to \num{0.8258} and the chronological arm from \num{0.6533} to \num{0.8076}, and a
+round of bug fixing that improves nearly every number deserves the suspicion it attracts. Two
+things answer it, and neither is an assurance. First, the two leaks we removed moved the score
+\emph{up} when reintroduced, \num{0.0015} and \num{0.0043}, which is the direction a leak must move it;
+had removing a leak raised our score, the diagnosis would have been wrong. Second, and more
+to the point, several corrections cost us. The four learners are no longer statistically
+distinguishable, where an earlier draft reported two of three gaps excluding zero. Two of
+the three proposed algorithm components now \emph{raise} the objective when removed, so
+they contribute nothing. A component described as paying for itself twice in fact costs
+\SI{77}{\percent} more runtime, and that claim is withdrawn. And the study's most quotable finding,
+that a deployed model would recover under a tenth of future breaches at its default
+threshold, was an artifact of the date defect: the true figure is \SI{67.7}{\percent}, and the
+dramatic version is withdrawn rather than softened. A correction round that only ever helped
+would be evidence of selection. This one did not.
 
 \textbf{Counterfactual outcomes are not observed.} A historical log records only the
 assignment that happened. Any policy differing from the recorded one is scored by a model
@@ -212,10 +330,14 @@ with the real observed breach rate on exactly those cases, as the only non-simul
 signal available. Off-policy evaluation would address this properly and is left to future
 work.
 
-\textbf{Group-level rather than individual-level assignment.} The log identifies assignment
-groups, not individuals, so representative-level features such as experience and individual
-historical conversion are not estimable. A log with individual resource identifiers would
-support the finer formulation.
+\textbf{Group-level and individual-level assignment both appear, and the distinction matters.}
+BPI 2014 identifies assignment groups rather than individuals, so representative-level features
+such as experience are not estimable on it. Three of the four added logs do carry individual
+resource identifiers, and the encoding runs at that level there: \num{120} distinct originators
+on BPI Challenge 2017 and \num{894} on Hospital Billing. The protocol is unchanged between the
+two settings, because Rule 2 is stated over whatever entity the log identifies. What we cannot
+say is whether encoding at individual level is better than at team level, since no log here
+offers both and a comparison across logs would confound the entity with everything else.
 
 \textbf{Explanation is reported but not validated against human decisions.} SHAP attributions
 are computed for the predictive layer, but attribution methods have known impossibility

@@ -1,0 +1,45 @@
+Train 32,623 | Test 13,982 | feats 17 | breach 36.7%
+
+================================================================================================================
+  UNTUNED BASELINES (leak-free)
+================================================================================================================
+  XGBoost_untuned                    CV-AUC=nan  Test-AUC=0.8297  F1=0.6828  Acc=0.7460
+  LightGBM_untuned                   CV-AUC=nan  Test-AUC=0.8266  F1=0.6786  Acc=0.7414
+  CatBoost_untuned                   CV-AUC=nan  Test-AUC=0.8226  F1=0.6767  Acc=0.7372
+  RandomForest_untuned               CV-AUC=nan  Test-AUC=0.8253  F1=0.6777  Acc=0.7427
+
+================================================================================================================
+  HYPERPARAMETER SEARCH (lean: 25 candidates x 5 folds, capped depth/estimators)
+================================================================================================================
+  XGBoost search 106s | best params: {'subsample': 0.8, 'reg_lambda': 3, 'n_estimators': 500, 'min_child_weight': 1, 'max_depth': 8, 'learning_rate': 0.03, 'gamma': 0, 'colsample_bytree': 0.6}
+  XGBoost_tuned                      CV-AUC=0.8311  Test-AUC=0.8329  F1=0.6866  Acc=0.7525
+  LightGBM search 95s | best params: {'subsample': 1.0, 'reg_lambda': 0, 'num_leaves': 31, 'n_estimators': 800, 'min_child_samples': 50, 'max_depth': -1, 'learning_rate': 0.05, 'colsample_bytree': 0.6}
+  LightGBM_tuned                     CV-AUC=0.8302  Test-AUC=0.8316  F1=0.6846  Acc=0.7490
+
+================================================================================================================
+  ENSEMBLES
+================================================================================================================
+  SoftVote(XGBt,LGBMt,CatBoost)      CV-AUC=nan  Test-AUC=0.8325  F1=0.6853  Acc=0.7489
+  SoftVote(4 models)                 CV-AUC=nan  Test-AUC=0.8322  F1=0.6847  Acc=0.7486
+
+  Stacking (logistic meta-learner on 5-fold out-of-fold predictions)
+  Stacking(LR meta)                  CV-AUC=nan  Test-AUC=0.8332  F1=0.6628  Acc=0.7643
+
+================================================================================================================
+  PAIRED BOOTSTRAP vs untuned XGBoost (the 0.7877 reference)
+================================================================================================================
+  Reference untuned XGBoost AUC = 0.8297
+
+  XGBoost_tuned              AUC=0.8329  diff=+0.0032  95%CI[+0.0019,+0.0046]  P(better)=1.000  -> REAL GAIN
+  LightGBM_tuned             AUC=0.8316  diff=+0.0019  95%CI[+0.0001,+0.0037]  P(better)=0.980  -> REAL GAIN
+  SoftVote_3                 AUC=0.8325  diff=+0.0028  95%CI[+0.0018,+0.0038]  P(better)=1.000  -> REAL GAIN
+  SoftVote_4                 AUC=0.8322  diff=+0.0025  95%CI[+0.0015,+0.0035]  P(better)=1.000  -> REAL GAIN
+  Stacking                   AUC=0.8332  diff=+0.0035  95%CI[+0.0024,+0.0046]  P(better)=1.000  -> REAL GAIN
+
+================================================================================================================
+  BEST leak-free Model B: Stacking at AUC 0.8332
+  Untuned reference     : 0.8297   (gain +0.0035)
+  Clears 0.80 AUC?      : YES
+================================================================================================================
+
+Wrote D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_bpi_leakfree_7030\model_b_tuned_ensemble.csv and model_b_significance.csv

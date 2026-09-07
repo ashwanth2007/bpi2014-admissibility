@@ -1,0 +1,63 @@
+Loaded 41,188 rows x 20 inputs
+Conversion rate: 11.27%  (positives 4,640)
+With duration: 20 | Without: 19
+
+======================================================================================================================
+  A1. WITH duration  (parity with the published Moro et al. 2014 benchmark, AUC 0.8)
+======================================================================================================================
+  A1_with_duration           LogisticRegression  CV-AUC=0.9298  Test-AUC=0.9378  F1=0.5813  Acc=0.8543
+  A1_with_duration           RandomForest        CV-AUC=0.9429  Test-AUC=0.9513  F1=0.6626  Acc=0.9060
+  A1_with_duration           XGBoost             CV-AUC=0.9461  Test-AUC=0.9537  F1=0.6426  Acc=0.8870
+  A1_with_duration           LightGBM            CV-AUC=0.9473  Test-AUC=0.9533  F1=0.6326  Acc=0.8796
+  A1_with_duration           CatBoost            CV-AUC=0.9486  Test-AUC=0.9558  F1=0.6233  Acc=0.8713
+
+======================================================================================================================
+  A2. WITHOUT duration  (decision-time admissible, the deployable model)
+======================================================================================================================
+  A2_no_duration             LogisticRegression  CV-AUC=0.7821  Test-AUC=0.7950  F1=0.4358  Acc=0.8026
+  A2_no_duration             RandomForest        CV-AUC=0.7829  Test-AUC=0.8082  F1=0.5167  Acc=0.8874
+  A2_no_duration             XGBoost             CV-AUC=0.7785  Test-AUC=0.8061  F1=0.4883  Acc=0.8512
+  A2_no_duration             LightGBM            CV-AUC=0.7889  Test-AUC=0.8092  F1=0.4939  Acc=0.8497
+  A2_no_duration             CatBoost            CV-AUC=0.7924  Test-AUC=0.8125  F1=0.4934  Acc=0.8472
+
+======================================================================================================================
+  A3. WITHOUT duration, hyperparameter search
+======================================================================================================================
+  tuned XGBoost (337s): CV-AUC=0.7981  Test-AUC=0.8185
+  best params: {'subsample': 0.7, 'reg_lambda': 10, 'n_estimators': 500, 'min_child_weight': 10, 'max_depth': 6, 'learning_rate': 0.01, 'gamma': 0.3, 'colsample_bytree': 0.8}
+
+======================================================================================================================
+  A4. ENSEMBLE, does combining actually help (soft vote of tuned XGB + LGBM + CatBoost)
+======================================================================================================================
+  Ensemble  Test-AUC=0.8147
+  Best single Test-AUC=0.8185
+  Paired bootstrap  diff=-0.0038  95% CI [-0.0067, -0.0007]  P(ensemble better)=0.006
+  VERDICT: ensemble is NOT a statistically supported improvement
+
+======================================================================================================================
+  A5. CHRONOLOGICAL HOLDOUT, no duration (file is date-ordered May 2008 to Nov 2010)
+======================================================================================================================
+  A5_no_duration_temporal    LogisticRegression  CV-AUC=nan  Test-AUC=0.6436  F1=0.4666  Acc=0.4722
+  A5_no_duration_temporal    RandomForest        CV-AUC=nan  Test-AUC=0.6340  F1=0.0116  Acc=0.6894
+  A5_no_duration_temporal    XGBoost             CV-AUC=nan  Test-AUC=0.5789  F1=0.1762  Acc=0.6821
+  A5_no_duration_temporal    LightGBM            CV-AUC=nan  Test-AUC=0.6225  F1=0.4111  Acc=0.6571
+  A5_no_duration_temporal    CatBoost            CV-AUC=nan  Test-AUC=0.6308  F1=0.4231  Acc=0.6544
+
+======================================================================================================================
+  STATISTICAL CHECK: what does dropping duration actually cost
+======================================================================================================================
+  AUC(with duration) - AUC(without) = +0.1476  95% CI [+0.1312, +0.1639]
+  So duration alone is worth 0.1476 AUC. It is not available at decision time.
+
+Wrote C:\Users\ashwa\AppData\Local\Temp\claude\D--Ashwanth-S\91d4a6be-faa9-4f95-988d-f5bb22234386\scratchpad\model_a_results\model_a_results.csv
+
+======================================================================================================================
+  SUMMARY vs PUBLISHED BASELINE
+======================================================================================================================
+  Moro, Cortez, Rita 2014 (NN, with duration), published : 0.800
+  Ours, with duration (parity condition)                 : 0.9558   (+0.1558)
+  Ours, no duration, untuned                             : 0.8125
+  Ours, no duration, tuned                               : 0.8185
+  Ours, no duration, ensemble                            : 0.8147
+  Ours, no duration, chronological holdout               : 0.6436
+======================================================================================================================

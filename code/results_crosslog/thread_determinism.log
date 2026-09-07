@@ -1,0 +1,15 @@
+  threads=2   rep=1  contaminated 0.9051  admissible 0.8267  chronological 0.8095
+  threads=2   rep=2  contaminated 0.9051  admissible 0.8267  chronological 0.8095
+  threads=4   rep=1  contaminated 0.9050  admissible 0.8258  chronological 0.8076
+  threads=4   rep=2  contaminated 0.9050  admissible 0.8258  chronological 0.8076
+  threads=8   rep=1  contaminated 0.9048  admissible 0.8273  chronological 0.8092
+  threads=8   rep=2  contaminated 0.9048  admissible 0.8273  chronological 0.8092
+
+  contaminated_auc     min 0.9048  max 0.9051  spread 0.0003
+  admissible_auc       min 0.8258  max 0.8273  spread 0.0015
+  chronological_auc    min 0.8076  max 0.8095  spread 0.0019
+  threads=2   repeats bit-identical: True
+  threads=4   repeats bit-identical: True
+  threads=8   repeats bit-identical: True
+
+wrote D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_crosslog\thread_determinism.csv

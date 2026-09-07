@@ -1,0 +1,51 @@
+{
+  "exported_at": "2026-09-02T10:10:04",
+  "models": [
+    {
+      "name": "model_a_conversion",
+      "version": "xgb-tuned-a3-nodur",
+      "dataset": "UCI Bank Marketing bank-additional-full.csv (41,188 rows)",
+      "config": "A3_tuned_no_duration",
+      "holdout_auc": 0.8185,
+      "adapter_auc": 0.6885,
+      "live_features": 8,
+      "published_test_auc": 0.8185,
+      "published_cv_auc": 0.7981,
+      "n_features": 19,
+      "base_rate": 0.1127,
+      "served": true
+    },
+    {
+      "name": "model_b_sla",
+      "version": "xgb-tuned-leakfree",
+      "dataset": "BPI Challenge 2014, Rabobank ITSM incidents",
+      "config": "XGBoost_tuned (leak-free feature set)",
+      "holdout_auc": 0.7927,
+      "adapter_auc": 0.7097,
+      "adapter_auc_priority_passed_through": 0.7118,
+      "live_features": 9,
+      "group_median_cases": 29,
+      "groups_below_smoothing": 0.4211,
+      "published_test_auc": 0.7927,
+      "published_cv_auc": 0.7932,
+      "n_features": 17,
+      "base_rate": 0.3664,
+      "served": true
+    },
+    {
+      "name": "model_b_sla_v3_comparison",
+      "served": false,
+      "version": "xgb-tuned-v3-causal",
+      "dataset": "BPI Challenge 2014, Rabobank ITSM incidents",
+      "config": "v3 causal entity encodings, 28 features, tuned XGBoost",
+      "holdout_auc": 0.807,
+      "adapter_auc": 0.6782,
+      "live_features": 13,
+      "n_features": 28,
+      "best_ensemble_auc": 0.8071,
+      "chronological_auc": 0.7544,
+      "published_test_auc": 0.806,
+      "note": "The research best. NOT served: it beats v2 on BPI columns (0.8070 vs 0.7927) but loses under the CRM adapter (0.6782 vs 0.7097), because its advantage lives in configuration item, service component and category encodings a CRM does not have."
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+[
+  {
+    "slug": "bpic2017",
+    "domain": "Financial services, consumer lending",
+    "admissible_auc": 0.6664213868359223,
+    "n_inadmissible": 7,
+    "counts_used": [
+      "n_events",
+      "n_activities"
+    ],
+    "others_used": [
+      "n_resources_touched",
+      "n_offers",
+      "n_workflow_events",
+      "was_returned",
+      "was_incomplete"
+    ],
+    "full_auc": 0.8952912282202342,
+    "full_cost": 0.22886984138431188,
+    "full_share_pct": 57.89904380493826,
+    "counts_auc": 0.8587861820943486,
+    "counts_cost": 0.1923647952584263,
+    "counts_share_pct": 53.61544141291397,
+    "no_counts_auc": 0.8939015887005242,
+    "no_counts_cost": 0.22748020186460183,
+    "no_counts_share_pct": 57.7505164716537
+  },
+  {
+    "slug": "sepsis",
+    "domain": "Healthcare, acute treatment",
+    "admissible_auc": 0.6045938824607631,
+    "n_inadmissible": 3,
+    "counts_used": [
+      "n_events",
+      "n_activities"
+    ],
+    "others_used": [
+      "n_resources_touched"
+    ],
+    "full_auc": 0.8161874212395464,
+    "full_cost": 0.21159353877878329,
+    "full_share_pct": 66.92028985507244,
+    "counts_auc": 0.7902394317791271,
+    "counts_cost": 0.18564554931836408,
+    "counts_share_pct": 63.96289717781723,
+    "no_counts_auc": 0.7660098522167488,
+    "no_counts_cost": 0.1614159697559857,
+    "no_counts_share_pct": 60.680447889750184
+  },
+  {
+    "slug": "hospital",
+    "domain": "Healthcare administration",
+    "admissible_auc": 0.9042148232501381,
+    "n_inadmissible": 7,
+    "counts_used": [
+      "n_events",
+      "n_activities"
+    ],
+    "others_used": [
+      "n_resources_touched",
+      "first_isClosed",
+      "first_isCancelled",
+      "first_blocked",
+      "first_state"
+    ],
+    "full_auc": 0.94779047978471,
+    "full_cost": 0.04357565653457185,
+    "full_share_pct": 9.731260154419155,
+    "counts_auc": 0.9390506095504868,
+    "counts_cost": 0.03483578630034867,
+    "counts_share_pct": 7.934344137687132,
+    "no_counts_auc": 0.9381030319313249,
+    "no_counts_cost": 0.033888208681186804,
+    "no_counts_share_pct": 7.73521436996103
+  },
+  {
+    "slug": "trafficfines",
+    "domain": "Public administration",
+    "admissible_auc": 0.6463516487210024,
+    "n_inadmissible": 5,
+    "counts_used": [
+      "n_events",
+      "n_activities"
+    ],
+    "others_used": [
+      "n_resources_touched",
+      "first_totalPaymentAmount",
+      "first_dismissal"
+    ],
+    "full_auc": 0.9790613085881625,
+    "full_cost": 0.33270965986716017,
+    "full_share_pct": 69.45033003138698,
+    "counts_auc": 0.9786486218714187,
+    "counts_cost": 0.3322969731504163,
+    "counts_share_pct": 69.42399036921965,
+    "no_counts_auc": 0.650890116468553,
+    "no_counts_cost": 0.004538467747550623,
+    "no_counts_share_pct": 3.0077965699605547
+  }
+]

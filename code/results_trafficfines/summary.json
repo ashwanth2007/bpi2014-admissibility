@@ -1,0 +1,14 @@
+{
+  "slug": "trafficfines",
+  "name": "Road Traffic Fine Management, Italian local police",
+  "domain": "Public administration",
+  "group_level": "individual",
+  "n_cases": 133956,
+  "n_groups": 136,
+  "breach_rate": 0.4413837379438024,
+  "n_admissible": 13,
+  "n_inadmissible": 5,
+  "best_admissible_auc": 0.6463516487210024,
+  "cost_best": 0.33257118811961295,
+  "share_of_signal_pct": 69.44149715506092
+}

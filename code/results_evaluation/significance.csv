@@ -1,0 +1,6 @@
+metric,better,mean_diff,p_value,n_pairs,favours_PAA
+hypervolume,higher,0.00666,1.504722489470097e-19,150,True
+f2_breach,lower,-0.01322,0.00014894726114338436,150,True
+f1_ftr,higher,0.01367,1.2708138955064014e-05,150,True
+f3_workload_sd,lower,0.22006,1.5785320119424348e-21,150,False
+f4_expertise,higher,0.04898,9.872113508906532e-07,150,True

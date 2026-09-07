@@ -1,0 +1,162 @@
+{
+  "_meta": {
+    "dataset": "BPI Challenge 2014",
+    "incidents": 39449,
+    "groups": 87,
+    "categories": 61,
+    "train_fraction": 0.8,
+    "train_n": 31559,
+    "seed": 42,
+    "rule": "every parameter fitted on the earliest 80 per cent by open time",
+    "runtime_seconds": 24.5
+  },
+  "s5_freshness_decay": {
+    "lambda_per_hour": 0.01736614254625731,
+    "ci95": [
+      0.016071009328869967,
+      0.01876564817837326
+    ],
+    "n": 31394,
+    "fitted_on": "training period only",
+    "delay_cap_hours": 168.0,
+    "rows_excluded_above_cap": 171,
+    "finite_delay_rows": 39449,
+    "excluded_fraction": 0.004334710639052954,
+    "delay_median_hours": 0.4938888888888889,
+    "delay_p90_hours": 16.574166666666667,
+    "delay_p99_hours": 92.52064444444416,
+    "uncapped_lambda_per_hour": 0.009701415722678854,
+    "uncapped_ci95": [
+      0.008798536553723497,
+      0.010696945616985634
+    ],
+    "uncapped_n": 31559,
+    "why_capped": "a week-plus wait to first assignment is a different operational regime from the speed-to-lead window s5 models; reported as a modelling choice, with the uncapped control fit recorded beside it"
+  },
+  "s6_urgency_ramp": {
+    "k": 0.022780362010650243,
+    "tau0_hours": -12.030318056542033,
+    "n": 31394,
+    "sla_target_source": "per-priority median handle time, training period",
+    "fitted_on": "training period only"
+  },
+  "s3_expertise": {
+    "metric": "cosine similarity",
+    "eval_shape": [
+      7890,
+      87
+    ],
+    "exact_zero_cells": 206214,
+    "exact_zero_fraction": 0.3004151916437219,
+    "groups_with_no_training_history": 0,
+    "note": "exact zeros are why the power mean needs a floor for p <= 0"
+  },
+  "s4_workload": {
+    "jain_index": 0.3301356474337764,
+    "std_dev": 516.7151601652657,
+    "coefficient_of_variation": 1.4244500438663492,
+    "n_groups": 87
+  },
+  "s1_s2_models": {
+    "auc_breach": 0.7879334201602116,
+    "auc_reassign": 0.8187287719269225
+  },
+  "rank_stability": {
+    "critic_vs_entropy": {
+      "spearman_rho": 0.9463221558824046,
+      "p_value": 0.0
+    },
+    "critic_vs_equal": {
+      "spearman_rho": 0.9591954775911442,
+      "p_value": 0.0
+    },
+    "entropy_vs_equal": {
+      "spearman_rho": 0.8556282389563481,
+      "p_value": 0.0
+    }
+  },
+  "weights": {
+    "critic": [
+      0.16279560960979203,
+      0.15890274719174463,
+      0.2582332292012437,
+      0.12225834952391033,
+      0.09128096238762955,
+      0.07825220401186961,
+      0.12827689807381007
+    ],
+    "entropy": [
+      0.12831825044667905,
+      0.10320988693343636,
+      0.4687389143102145,
+      2.846967770635244e-10,
+      0.0071449866128779115,
+      0.006490015061004203,
+      0.28609794635109115
+    ],
+    "equal": [
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285,
+      0.14285714285714285
+    ]
+  },
+  "criteria": [
+    "s1_outcome",
+    "s2_sla_survival",
+    "s3_expertise",
+    "s4_workload",
+    "s5_freshness",
+    "s6_urgency",
+    "s7_importance"
+  ],
+  "f2_hazard": {
+    "event_modelled": "resolution, not breach",
+    "why": "breach is a deterministic function of duration versus the per-priority threshold; the measured breach rate past threshold is 1.0000, so a breach-hazard model with elapsed time as a feature reads the label and scored 0.9542 while learning nothing. Measured in this run, not quoted.",
+    "rejected_breach_hazard_auc": 0.9541977844269798,
+    "breach_rate_past_threshold": 1.0,
+    "cases_past_threshold": 16111,
+    "label_is_step_function_of_duration": true,
+    "implied_cut_hours_by_priority": {
+      "2.0": 6.883611111,
+      "3.0": 2.961388889,
+      "4.0": 7.170277778,
+      "5.0": 15.26
+    },
+    "person_period_rows": 161720,
+    "cases": 39449,
+    "expansion": 4.099470202033005,
+    "bin_resolution_rate": 0.24296932970566412,
+    "heldout_resolution_hazard_auc": 0.7640144568610006,
+    "derived_breach_auc_at_intake": 0.8373218743323725,
+    "static_model_breach_auc_for_comparison": 0.7879334201602116,
+    "threshold": 0.5250492691993713,
+    "threshold_tuned_on": "training period (earliest 80 per cent) (f1 = 0.5134)",
+    "survival_monotonic": true,
+    "bin_edges_hours": [
+      0.0,
+      1.0,
+      2.0,
+      4.0,
+      8.0,
+      16.0,
+      24.0,
+      48.0,
+      96.0,
+      168.0,
+      "inf"
+    ],
+    "features": [
+      "priority",
+      "impact",
+      "urgency",
+      "assignment_delay",
+      "category_id",
+      "bin_idx",
+      "bin_start"
+    ]
+  }
+}

@@ -5,6 +5,8 @@ Question 2: does combining models genuinely help, or does it just look like it?
 Every "better" claim is tested with a paired bootstrap on the same test set, so a
 gain is only reported as real when the 95% CI on the difference excludes zero.
 """
+import _openmp_first  # noqa: F401  MUST precede sklearn/xgboost/catboost, see module docstring
+
 import warnings, time
 warnings.filterwarnings("ignore")
 import numpy as np, pandas as pd
@@ -20,6 +22,16 @@ from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 
 import os
+
+# BPI 2014 timestamp formats. BOTH files are day-first; the incident file uses "/" and the
+# activity file uses "-". This was previously parsed with format="mixed", dayfirst=False on the
+# incident file, which silently swapped day and month on the 41 per cent of rows where both
+# fields are <= 12. Verified from the raw bytes on 2026-09-07: across 46,606 non-blank Open Time
+# values, 27,994 have a first field > 12 and ZERO have a second field > 12, so month-first is
+# arithmetically impossible. Never use format="mixed" on an ambiguous numeric date.
+INCIDENT_TS_FORMAT = "%d/%m/%Y %H:%M:%S"
+ACTIVITY_TS_FORMAT = "%d-%m-%Y %H:%M:%S"
+
 SEED = 42; SMOOTH = 20
 np.random.seed(SEED)
 # Split fraction and run tag are configurable so this arm can be run under the same
@@ -31,11 +43,32 @@ OUT = Path(__file__).parent / ("results_bpi_leakfree" + (("_" + RUN_TAG) if RUN_
 OUT.mkdir(exist_ok=True)
 
 inc = pd.read_csv(D/"Detail_Incident.csv", sep=";", encoding="latin1")
+
+# The published Detail_Incident.csv ends with 203 completely empty rows: every real column
+# is null, including Incident ID. They survive read_csv as NaN-keyed rows, and any
+# set_index("Incident ID") then carries 203 duplicate NaN keys, which makes .map() raise
+# InvalidIndexError. The truncated working copy used before 2026-09-07 did not include
+# them. Real incidents: 46,606 of 46,809 raw rows, all with unique IDs once these are gone.
+inc = inc[inc["Incident ID"].notna()].copy()
 act = pd.read_csv(D/"Detail_Incident_Activity.csv", sep=";", encoding="latin1")
+
+# Priority, Impact and Urgency are ordinal 1..5 but are NOT clean integers in the full
+# published file: one row carries Urgency = "5 - Very Low" rather than "5", which makes
+# the whole column object dtype and causes XGBoost to reject the matrix outright. The
+# truncated working copy used before 2026-09-07 did not contain that row, so this never
+# surfaced. Take the leading integer and coerce; anything unparseable becomes NaN and is
+# dropped by the existing Priority notna() filter.
+for _c in ["Priority", "Impact", "Urgency"]:
+    if _c in inc.columns and inc[_c].dtype == object:
+        inc[_c] = pd.to_numeric(
+            inc[_c].astype(str).str.extract(r"^\s*(\d+)", expand=False), errors="coerce")
+    else:
+        inc[_c] = pd.to_numeric(inc[_c], errors="coerce")
+
 inc["Handle_Time_Hours"] = pd.to_numeric(inc["Handle Time (Hours)"].astype(str).str.replace(",","."), errors="coerce")
 for c in ["Open Time","Resolved Time","Close Time"]:
-    inc[c] = pd.to_datetime(inc[c], format="mixed", dayfirst=False, errors="coerce")
-act["DateStamp"] = pd.to_datetime(act["DateStamp"], format="mixed", dayfirst=True, errors="coerce")
+    inc[c] = pd.to_datetime(inc[c], format=INCIDENT_TS_FORMAT, errors="coerce")
+act["DateStamp"] = pd.to_datetime(act["DateStamp"], format=ACTIVITY_TS_FORMAT, errors="coerce")
 
 pm = inc.groupby("Priority")["Handle_Time_Hours"].median()
 inc["SLA_Breached"] = (inc["Handle_Time_Hours"] > inc["Priority"].map({p:m*2.0 for p,m in pm.items()})).astype(int)

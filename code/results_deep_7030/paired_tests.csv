@@ -1,0 +1,17 @@
+Config,A,B,Model,Delta_AUC,CI_low,CI_high,P_A_better,P_value
+contaminated_v1,XGBoost,LightGBM,LightGBM,0.00024695196850793994,-0.006473832076473296,0.007277733798382896,0.522,
+contaminated_v1,XGBoost,CatBoost,CatBoost,0.006186786616063344,-0.0007823188024136118,0.01343118629568713,0.952,
+contaminated_v1,XGBoost,RandomForest,RandomForest,0.0055191593763987724,-0.0016795508052125788,0.012578684310079151,0.932,
+leakfree,XGBoost,LightGBM,LightGBM,0.001961816496314029,-0.00789754832453692,0.011828145530013537,0.648,
+leakfree,XGBoost,CatBoost,CatBoost,0.009153955551405824,-0.0005140615515483226,0.019012868174883995,0.97,
+leakfree,XGBoost,RandomForest,RandomForest,0.004670358696286856,-0.00518250646918886,0.01443001188590557,0.8255,
+cost_of_admissibility,contaminated_v1,leakfree,XGBoost,0.07914186727076299,0.07034271033967307,0.08754063259990985,1.0,
+cost_of_admissibility,contaminated_v1,leakfree,LightGBM,0.08085673179856907,0.07232132267420037,0.08938086161704546,1.0,
+cost_of_admissibility,contaminated_v1,leakfree,CatBoost,0.08210903620610546,0.07317113513966024,0.09091672933109506,1.0,
+cost_of_admissibility,contaminated_v1,leakfree,RandomForest,0.07829306659065105,0.07015618488617416,0.08696476535535398,1.0,
+contaminated_v1_cv_wilcoxon,XGBoost,LightGBM,LightGBM,0.0017041040097836246,,,,0.0625
+contaminated_v1_cv_wilcoxon,XGBoost,CatBoost,CatBoost,0.006420201068970477,,,,0.0625
+contaminated_v1_cv_wilcoxon,XGBoost,RandomForest,RandomForest,0.0073389649360267924,,,,0.0625
+leakfree_cv_wilcoxon,XGBoost,LightGBM,LightGBM,0.0026651007408593497,,,,0.0625
+leakfree_cv_wilcoxon,XGBoost,CatBoost,CatBoost,0.008160759008789075,,,,0.0625
+leakfree_cv_wilcoxon,XGBoost,RandomForest,RandomForest,0.004818825580917729,,,,0.0625

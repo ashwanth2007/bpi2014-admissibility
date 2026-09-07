@@ -222,6 +222,27 @@ def main():
     df.to_csv(RESULTS / f"metrics_{args.tag}.csv", index=False)
     pd.DataFrame(front_rows).to_csv(RESULTS / f"fronts_{args.tag}.csv", index=False)
 
+    # Which dataset produced this. Nothing recorded it before, and that omission cost the
+    # study its whole assignment section for a while: every phase-4 artifact on disk had been
+    # computed on a truncated, mis-parsed copy of the log, the CSVs carried no trace of it,
+    # and the only evidence was one line at the top of a run log nobody re-read. An artifact
+    # that cannot say what it was measured on cannot be checked, so it says so now, and
+    # analyse_p4.py refuses to report when this disagrees with the live replay.
+    provenance = {
+        "tag": args.tag,
+        "written_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "incidents": int(len(replay.df)),
+        "groups": int(len(replay.groups)),
+        "specialisations": int(len(replay.categories)),
+        "batches": int(args.batches),
+        "runs": int(args.runs),
+        "generations": int(args.gens),
+        "population": int(args.pop),
+        "batch_size": int(args.batch_size),
+        "wall_seconds": round(time.time() - t_start, 1),
+    }
+    json.dump(provenance, open(RESULTS / f"provenance_{args.tag}.json", "w"), indent=2)
+
     # ------------------------------------------------------------- summary table
     num = df.select_dtypes(include=[np.number]).columns
     summary = df.groupby("policy")[list(num)].mean(numeric_only=True).round(4)

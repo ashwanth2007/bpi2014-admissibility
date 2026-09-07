@@ -1,0 +1,85 @@
+Loading BPI 2014 replay ...
+  15,828 incidents, 50 groups, 47 specialisations
+Training lead-level models on the first 80% of the timeline:
+  P(SLA breach)                holdout AUC = 0.7399
+  P(reassigned)                holdout AUC = 0.7776
+  5 arrival batches of 40 leads
+
+  batch 0 StandardNSGA2    done (144s elapsed)
+  batch 0 NSGA3            done (318s elapsed)
+  batch 0 PAA-NSGA-II      done (471s elapsed)
+  batch 0 PAA-noPriority   done (609s elapsed)
+  batch 0 PAA-noAdaptive   done (739s elapsed)
+  batch 0 PAA-noSLAMut     done (877s elapsed)
+  batch 0 PAA-AdaptMut     done (1007s elapsed)
+  batch 0 NSGA3-PrioInit   done (1153s elapsed)
+  batch 1 StandardNSGA2    done (1279s elapsed)
+  batch 1 NSGA3            done (1426s elapsed)
+  batch 1 PAA-NSGA-II      done (1565s elapsed)
+  batch 1 PAA-noPriority   done (1705s elapsed)
+  batch 1 PAA-noAdaptive   done (1833s elapsed)
+  batch 1 PAA-noSLAMut     done (1972s elapsed)
+  batch 1 PAA-AdaptMut     done (2118s elapsed)
+  batch 1 NSGA3-PrioInit   done (2273s elapsed)
+  batch 2 StandardNSGA2    done (2395s elapsed)
+  batch 2 NSGA3            done (2539s elapsed)
+  batch 2 PAA-NSGA-II      done (2673s elapsed)
+  batch 2 PAA-noPriority   done (2811s elapsed)
+  batch 2 PAA-noAdaptive   done (2936s elapsed)
+  batch 2 PAA-noSLAMut     done (3072s elapsed)
+  batch 2 PAA-AdaptMut     done (3200s elapsed)
+  batch 2 NSGA3-PrioInit   done (3344s elapsed)
+  batch 3 StandardNSGA2    done (3472s elapsed)
+  batch 3 NSGA3            done (3616s elapsed)
+  batch 3 PAA-NSGA-II      done (3772s elapsed)
+  batch 3 PAA-noPriority   done (3933s elapsed)
+  batch 3 PAA-noAdaptive   done (4073s elapsed)
+  batch 3 PAA-noSLAMut     done (4209s elapsed)
+  batch 3 PAA-AdaptMut     done (4335s elapsed)
+  batch 3 NSGA3-PrioInit   done (4475s elapsed)
+  batch 4 StandardNSGA2    done (4595s elapsed)
+  batch 4 NSGA3            done (4738s elapsed)
+  batch 4 PAA-NSGA-II      done (4871s elapsed)
+  batch 4 PAA-noPriority   done (5002s elapsed)
+  batch 4 PAA-noAdaptive   done (5122s elapsed)
+  batch 4 PAA-noSLAMut     done (5258s elapsed)
+  batch 4 PAA-AdaptMut     done (5404s elapsed)
+  batch 4 NSGA3-PrioInit   done (5572s elapsed)
+
+======================================================================================================================
+  SUMMARY  (f1 and f4 higher is better; f2, f3, delay lower is better)
+======================================================================================================================
+                   f1_ftr  f2_breach  f3_workload_sd  f4_expertise  delay_hours  hypervolume  matched_fraction  matched_real_breach_rate  capacity_violation
+policy                                                                                                                                                      
+Random             0.5003     0.3996          0.9307        0.3743     423.3348          NaN            0.0300                    0.5833                 0.0
+RoundRobin         0.4893     0.4198          0.8171        0.3470     491.4684          NaN            0.0300                    0.2778                 0.0
+FIFO               0.2989     0.5128          3.2703        0.3738     811.4443          NaN            0.0750                    0.2367                 0.0
+LeastLoaded        0.4738     0.4224          0.4454        0.4377     419.6621          NaN            0.0350                    0.1111                 0.0
+GreedyBestOutcome  0.6809     0.3122          2.2073        0.6618     271.7688          NaN            0.0900                    0.4833                 0.0
+StandardNSGA2      0.5900     0.3257          1.1415        0.6985     239.8248       0.0675            0.0847                    0.4265                 0.0
+NSGA3              0.6295     0.3040          1.2172        0.7983     136.0066       0.1031            0.0907                    0.4183                 0.0
+PAA-NSGA-II        0.6087     0.3099          1.4212        0.7919     229.9325       0.0616            0.1005                    0.4376                 0.0
+PAA-noPriority     0.5896     0.3257          1.1413        0.6890     265.9222       0.0623            0.0905                    0.4232                 0.0
+PAA-noAdaptive     0.6151     0.3066          1.4604        0.7648     217.6218       0.0620            0.0938                    0.4327                 0.0
+PAA-noSLAMut       0.6136     0.3132          1.4292        0.7970     227.8721       0.0623            0.0998                    0.4532                 0.0
+PAA-AdaptMut       0.6148     0.3056          1.4611        0.7707     226.7978       0.0613            0.0968                    0.4111                 0.0
+NSGA3-PrioInit     0.6379     0.2952          1.4283        0.8086     134.3064       0.0910            0.0917                    0.3883                 0.0
+
+======================================================================================================================
+  PAA-NSGA-II vs StandardNSGA2, paired Wilcoxon signed-rank
+======================================================================================================================
+  hypervolume        mean diff -0.00591  p=7.333e-07  n=150  -> Standard better
+  f2_breach          mean diff -0.01579  p=1.876e-07  n=150  -> PAA better
+  f1_ftr             mean diff +0.01867  p=6.658e-07  n=150  -> PAA better
+  f3_workload_sd     mean diff +0.27970  p=4.702e-23  n=150  -> Standard better
+  f4_expertise       mean diff +0.09341  p=5.3e-16  n=150  -> PAA better
+
+  Holm-Bonferroni corrected at alpha=0.05:
+    f3_workload_sd     p=4.702e-23  threshold=0.01  SIGNIFICANT
+    f4_expertise       p=5.3e-16  threshold=0.0125  SIGNIFICANT
+    f2_breach          p=1.876e-07  threshold=0.01667  SIGNIFICANT
+    f1_ftr             p=6.658e-07  threshold=0.025  SIGNIFICANT
+    hypervolume        p=7.333e-07  threshold=0.05  SIGNIFICANT
+
+Total wall time 5573s
+Wrote results to D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\phase4\results

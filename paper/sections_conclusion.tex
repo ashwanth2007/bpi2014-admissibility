@@ -1,0 +1,40 @@
+% Shared block. Included by BOTH paper.tex and paper_ieee.tex.
+% Do NOT duplicate this text into either driver. The two drivers previously carried
+% their own copies of the abstract, conclusion and declarations, and they diverged:
+% the IEEE build shipped a code-availability URL that the single-column build did not,
+% and both PDFs went out that way on 2026-09-07.
+\section{Conclusion}
+
+Decision-time admissibility costs \num{0.0792} AUC on the incident log for the strongest
+learner, close to a fifth of all above-chance signal, and the same correction appears for all
+four learners with every bootstrap interval excluding zero. Across five logs the cost ranges
+from \SI{9.7}{\percent} to \SI{69.5}{\percent} of above-chance signal, so no single figure
+from any one log, including this one, should be read as a general constant.
+
+What generalises is the shape rather than the magnitude. Contaminated models across the five
+logs occupy a band of \num{0.155} AUC; admissible models on the same logs occupy
+more than twice that, \num{0.291}. Attributes recorded after a decision make unlike problems look alike. That is the
+practical case for the protocol: not that it improves a model, but that it stops a leaderboard
+from hiding which problems are actually solved.
+
+The discipline is nevertheless worth paying for on its own terms. An admissible ladder still
+gains \num{0.2542} AUC between eight and seventeen attributes, so the lesson of a leakage
+finding is not to model with fewer attributes but to model with observable ones. Choosing the
+admissible object rather than the convenient one can improve accuracy outright, as deriving
+breach from a resolution hazard does at \num{0.8373} against \num{0.7879}. The admissible
+model is honest about its limits: it separates cases at \num{0.8258} AUC and loses only
+\num{0.0184} when evaluation moves forward in time rather than across a random split, which is
+a smaller drift penalty than an earlier version of this work reported before a date-parsing
+defect in its own loader was found and corrected. In the assignment component the proposed
+operators improve on their own base algorithm, a reference-point control improves on them
+again, and an ablation attributes essentially the whole gain to one of the three proposed
+modifications.
+
+Three directions follow. Off-policy evaluation would replace the model-scored counterfactual
+used here with an estimator that has a variance bound. No log in this study carries both team
+and individual resource identifiers, so whether encoding at individual level is worth its
+higher cold-start cost cannot be settled here and needs a log that offers both. And the widest
+open question is now sharper than the one this work began with: not whether the cost of
+admissibility generalises, since it plainly does not, but what property of a log predicts it.
+The five measured here suggest the answer has more to do with what each organisation happened
+to record after a decision than with the domain it operates in.

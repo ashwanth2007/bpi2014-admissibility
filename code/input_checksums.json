@@ -1,0 +1,43 @@
+{
+  "note": "Digests of every raw input. Checked by evaluation/verify_input_data.py. Recorded deliberately, never auto-refreshed: a tool that re-records whatever it finds agrees with any file it is given.",
+  "inputs": {
+    "bpi2014/Detail_Incident.csv": {
+      "md5": "b0608464312c135da289d99911735a5d",
+      "bytes": 14306331,
+      "lines": 46810,
+      "what": "BPI Challenge 2014 incident header"
+    },
+    "bpi2014/Detail_Incident_Activity.csv": {
+      "md5": "afecd95a464271b97c745f361d3516af",
+      "bytes": 39172687,
+      "lines": 466738,
+      "what": "BPI Challenge 2014 activity log"
+    },
+    "bpi2014/Detail_Interaction.csv": {
+      "md5": "b60c858235b1470bc5efe0c526890bfe",
+      "bytes": 21873186,
+      "lines": 147005,
+      "what": "BPI Challenge 2014 interaction log"
+    },
+    "logs_raw/BPI Challenge 2017.xes.gz": {
+      "md5": "10b37a2f78e870d78406198403ff13d2",
+      "bytes": 29658747,
+      "what": "BPI Challenge 2017"
+    },
+    "logs_raw/Sepsis Cases - Event Log.xes.gz": {
+      "md5": "b5671166ac71eb20680d3c74616c43d2",
+      "bytes": 202508,
+      "what": "Sepsis Cases"
+    },
+    "logs_raw/Hospital Billing - Event Log.xes.gz": {
+      "md5": "2784619352be170e01c0a65594539972",
+      "bytes": 6615825,
+      "what": "Hospital Billing"
+    },
+    "logs_raw/Road_Traffic_Fine_Management_Process.xes.gz": {
+      "md5": "dc4cae9a592938af92932ca6c043baeb",
+      "bytes": 3454978,
+      "what": "Road Traffic Fines"
+    }
+  }
+}

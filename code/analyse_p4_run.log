@@ -1,0 +1,54 @@
+D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\phase4\sim\replay.py:78: DtypeWarning: Columns (7) have mixed types. Specify dtype option on import or set low_memory=False.
+  inc = pd.read_csv(d / "Detail_Incident.csv", sep=";", encoding="latin1")
+================================================================================================
+  Phase 4 evaluation: negative result, ablation, complexity, runtime
+================================================================================================
+  provenance OK: 39449 incidents, 87 groups, per fullv3_run.log
+
+policy               hypervol   f1 FTR  f2 brch     f3 sd     jain
+Random                    nan   0.4890   0.4351    0.7807   0.2589
+RoundRobin                nan   0.4592   0.4510    1.1796   0.1322
+FIFO                      nan   0.4500   0.5523    2.5554   0.0315
+LeastLoaded               nan   0.4473   0.4528    0.4984   0.4598
+GreedyBestOutcome         nan   0.6998   0.2885    1.6501   0.0733
+StandardNSGA2          0.0695   0.6169   0.3146    1.0352   0.1716
+NSGA3                  0.0824   0.6455   0.2792    0.9978   0.1799
+PAA-NSGA-II            0.0762   0.6306   0.3014    1.2552   0.1207
+PAA-noPriority         0.0658   0.6156   0.3076    1.0467   0.1680
+PAA-noAdaptive         0.0767   0.6325   0.3028    1.2518   0.1216
+PAA-noSLAMut           0.0767   0.6303   0.2964    1.2414   0.1236
+PAA-AdaptMut           0.0766   0.6337   0.3046    1.2710   0.1183
+NSGA3-PrioInit         0.0850   0.6595   0.2834    1.1679   0.1375
+
+Paired hypervolume comparisons (Wilcoxon signed-rank, same batch and run):
+  PAA-NSGA-II      vs NSGA3             diff -0.00625  p = 1.5e-23  n = 150
+  NSGA3-PrioInit   vs NSGA3             diff +0.00254  p = 6.82e-11  n = 150
+  PAA-NSGA-II      vs StandardNSGA2     diff +0.00666  p = 1.5e-19  n = 150
+  NSGA3            vs StandardNSGA2     diff +0.01292  p = 2.65e-26  n = 150
+
+Front size per policy written to front_size.csv
+
+Protocol: 1225 runs, 13 policies, 5 batches, 30 repeats, 0 capacity violations
+
+Ablation (removing a component; NEGATIVE delta means the component helps):
+  priority-aware initialisation    HV without = 0.0658   delta = -0.0104   helps = True
+  adaptive crossover               HV without = 0.0767   delta = +0.0005   helps = False
+  SLA-aware mutation               HV without = 0.0767   delta = +0.0006   helps = False
+
+Measured wall time per batch (CPU only, no GPU):
+  StandardNSGA2         0.89 s  sd 0.02  n=20    +0.0%
+  NSGA3                 0.99 s  sd 0.01  n=20   +12.2%
+  PAA-NSGA-II           0.96 s  sd 0.01  n=20    +8.1%
+  PAA-noPriority        0.96 s  sd 0.01  n=20    +7.8%
+  PAA-noAdaptive        0.91 s  sd 0.02  n=20    +2.4%
+  PAA-noSLAMut          0.98 s  sd 0.02  n=20   +10.1%
+  PAA-AdaptMut          0.92 s  sd 0.01  n=20    +3.5%
+  NSGA3-PrioInit        1.01 s  sd 0.02  n=20   +14.3%
+  [fig] fig07_hypervolume_by_variant
+  [fig] fig08_ablation
+  [fig] fig09_runtime
+
+================================================================================================
+  tables -> D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\results_evaluation
+  figures -> D:\Ashwanth S\data\school\VIT\Year 3\Sem 5\database systems\special project\code\figures_out
+================================================================================================

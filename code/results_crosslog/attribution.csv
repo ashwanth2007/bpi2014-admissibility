@@ -1,0 +1,7 @@
+variant,incidents,contaminated_auc,admissible_auc,chronological_auc,correction_auc,admissible_delta_vs_corrected,chronological_delta_vs_corrected,description
+corrected,46605,0.905,0.8258,0.8076,0.0792,0.0,0.0,every defect fixed; this is what the paper reports
+truncated_data,31237,0.9032,0.8215,0.7769,0.0817,-0.0043,-0.0307,"the partial copy of the incident file, 31238 rows instead of 46,606"
+legacy_dates,46605,0.8802,0.7869,0.7927,0.0933,-0.0389,-0.0149,"incident timestamps parsed month-first, transposing day and month on 41 per cent of rows"
+queue_lookahead,46605,0.9051,0.8273,0.8021,0.0778,0.0015,-0.0055,"standing queue count excludes cases that never resolve, which is future information"
+rule2_foldrefit,46605,0.905,0.8301,0.8077,0.0749,0.0043,0.0001,group encoding refitted inside every fold instead of over the admissible past set
+all_defects,31237,0.8771,0.7996,0.7235,0.0775,-0.0262,-0.0841,"all four together, which should approximate the figures the first draft reported"
