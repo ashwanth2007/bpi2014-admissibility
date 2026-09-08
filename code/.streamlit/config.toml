@@ -1,0 +1,31 @@
+# Config for the FastLead prototype. Committed so `streamlit run app/streamlit_app.py`
+# behaves the same for everyone and does not depend on remembered command-line flags.
+
+[server]
+# Bind IPv4 explicitly rather than relying on dual-stack ::.
+address = "127.0.0.1"
+
+# NOT 8501. Chrome caches the Streamlit frontend bundle per origin, and any other
+# Streamlit app ever run on localhost:8501 poisons this one: the browser serves the old
+# frontend, which never sends the rerun request, so the page sits on the loading skeleton
+# forever while the server is perfectly healthy. Verified on 2026-09-08 by driving the
+# websocket directly, which ran the script and returned 40 deltas and SCRIPT_FINISHED
+# while the browser tab on 8501 showed nothing. A fresh port is a clean cache.
+port = 8555
+
+headless = true
+
+# The queue slice is 9,321 rows. The default message cap is fine today, but a larger
+# dataframe payload truncates silently rather than erroring, which is the worst way for
+# a table to be wrong.
+maxMessageSize = 300
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#2f6f8f"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f6f7f9"
+textColor = "#12141a"
